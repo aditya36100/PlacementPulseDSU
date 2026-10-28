@@ -1,0 +1,2733 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+   <meta name="color-scheme" content="light">
+   <title>PlacementPulse</title>
+   <meta name="theme-color" content="#13152E">
+   <link rel="manifest" href="manifest.webmanifest">
+   <link rel="apple-touch-icon" href="icon-192.png">
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="mobile-web-app-capable" content="yes">
+   <link rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2313152E'/%3E%3Cpath d='M5 16h5l3-8 5 16 3-8h6' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+   <style>
+      :root {
+         box-sizing: border-box;
+         padding-top: env(safe-area-inset-top, 0px);
+         padding-bottom: env(safe-area-inset-bottom, 0px);
+         --bg: #F5F6FB;
+         --side: #13152E;
+         --ink: #15172E;
+         --mut: #6A6F8E;
+         --line: #E5E8F3;
+         --ac: #5A5AF5;
+         --acs: #ECECFF;
+         --mint: #0FA97F;
+         --warn: #F2622E;
+         --amb: #E9A100
+      }
+
+      html {
+         height: 100%;
+         scroll-padding-top: env(safe-area-inset-top, 0px)
+      }
+
+      * {
+         box-sizing: border-box
+      }
+
+      body {
+         margin: 0;
+         height: 100%;
+         background: #DCE1F0;
+         font-family: 'Onest', system-ui, -apple-system, sans-serif;
+         color: var(--ink);
+         -webkit-text-size-adjust: 100%
+      }
+
+      button {
+         font: inherit;
+         color: inherit;
+         cursor: pointer;
+         border: 0;
+         background: none;
+         padding: 0
+      }
+
+      input,
+      select {
+         font: inherit;
+         color: inherit
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      p {
+         margin: 0
+      }
+
+      ul,
+      ol,
+      blockquote {
+         margin: 0;
+         padding: 0
+      }
+
+      :focus-visible {
+         outline: 2px solid var(--ac);
+         outline-offset: 2px
+      }
+
+      .wrap {
+         height: 100%;
+         padding: 16px;
+         min-height: 640px
+      }
+
+      .app {
+         position: relative;
+         display: grid;
+         grid-template-columns: 76px 440px 1fr;
+         height: 100%;
+         background: #fff;
+         border-radius: 28px;
+         overflow: hidden;
+         box-shadow: 0 30px 80px -30px rgba(30, 30, 90, .25), 0 0 0 1px rgba(30, 30, 90, .06)
+      }
+
+      /* sidebar */
+      .side {
+         background: var(--side);
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         padding: 18px 0;
+         gap: 8px
+      }
+
+      .side .lg {
+         width: 44px;
+         height: 44px;
+         border-radius: 15px;
+         background: linear-gradient(135deg, #8A8AFF, #4646E6);
+         display: grid;
+         place-items: center;
+         margin-bottom: 18px;
+         color: #fff
+      }
+
+      .side button {
+         position: relative;
+         width: 46px;
+         height: 46px;
+         border-radius: 15px;
+         display: grid;
+         place-items: center;
+         color: #8E93B8;
+         transition: background .15s, color .15s
+      }
+
+      .side button:hover {
+         background: rgba(255, 255, 255, .07);
+         color: #fff
+      }
+
+      .side button.on {
+         background: rgba(255, 255, 255, .15);
+         color: #fff
+      }
+
+      .side button.has::before {
+         content: "";
+         position: absolute;
+         top: 9px;
+         right: 9px;
+         width: 9px;
+         height: 9px;
+         border-radius: 50%;
+         background: #FF7A59;
+         box-shadow: 0 0 0 2px var(--side)
+      }
+
+      .side button[data-savedonly].on svg {
+         fill: currentColor
+      }
+
+      .side button::after {
+         content: attr(data-tip);
+         position: absolute;
+         left: calc(100% + 12px);
+         top: 50%;
+         transform: translateY(-50%);
+         background: #0B0C20;
+         color: #fff;
+         font-size: 12.5px;
+         font-weight: 600;
+         padding: 6px 10px;
+         border-radius: 8px;
+         white-space: nowrap;
+         opacity: 0;
+         pointer-events: none;
+         transition: opacity .15s;
+         z-index: 40
+      }
+
+      .side button:hover::after,
+      .side button:focus-visible::after {
+         opacity: 1
+      }
+
+      .side button.on::after {
+         display: none
+      }
+
+      .side :focus-visible {
+         outline-color: #fff
+      }
+
+      /* list column */
+      .list {
+         display: flex;
+         flex-direction: column;
+         min-height: 0;
+         border-right: 1px solid var(--line);
+         background: #fff
+      }
+
+      .lh {
+         padding: 22px 20px 16px;
+         display: grid;
+         gap: 14px;
+         border-bottom: 1px solid var(--line)
+      }
+
+      .lh h1 {
+         font-size: 23px;
+         font-weight: 700;
+         letter-spacing: -.025em;
+         display: flex;
+         align-items: baseline;
+         justify-content: space-between
+      }
+
+      .lh h1 small {
+         font-size: 13px;
+         font-weight: 500;
+         color: var(--mut)
+      }
+
+      .srch {
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         background: var(--bg);
+         border-radius: 12px;
+         padding: 0 12px;
+         height: 44px;
+         color: var(--mut)
+      }
+
+      .srch input {
+         border: 0;
+         outline: 0;
+         background: none;
+         flex: 1;
+         min-width: 0;
+         color: var(--ink);
+         height: 100%
+      }
+
+      .sg {
+         display: flex;
+         gap: 6px;
+         flex-wrap: wrap
+      }
+
+      .sg button {
+         padding: 7px 13px;
+         border-radius: 99px;
+         border: 1px solid var(--line);
+         font-size: 13px;
+         font-weight: 500;
+         color: var(--mut);
+         transition: background .15s
+      }
+
+      .sg button:hover {
+         background: var(--bg)
+      }
+
+      .sg button.on {
+         background: var(--acs);
+         border-color: #C9C9FF;
+         color: var(--ac);
+         font-weight: 600
+      }
+
+      .two {
+         display: grid;
+         grid-template-columns: 1fr 1fr;
+         gap: 14px
+      }
+
+      .ctl {
+         display: grid;
+         gap: 6px;
+         min-width: 0
+      }
+
+      .cl {
+         font-size: 12.5px;
+         color: var(--mut);
+         font-weight: 500;
+         display: flex;
+         justify-content: space-between
+      }
+
+      .cl b {
+         color: var(--ink);
+         font-weight: 700
+      }
+
+      .slct {
+         position: relative;
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         background: var(--bg);
+         border-radius: 12px;
+         padding: 0 12px;
+         height: 42px;
+         color: var(--mut)
+      }
+
+      .slct select {
+         -webkit-appearance: none;
+         appearance: none;
+         border: 0;
+         background: none;
+         flex: 1;
+         height: 100%;
+         color: var(--ink);
+         font-weight: 600;
+         outline: 0;
+         min-width: 0;
+         cursor: pointer;
+         padding-right: 18px;
+         text-overflow: ellipsis
+      }
+
+      .slct>svg:last-child {
+         position: absolute;
+         right: 10px;
+         pointer-events: none
+      }
+
+      .slct:focus-within {
+         box-shadow: 0 0 0 2px var(--ac)
+      }
+
+      .rng {
+         -webkit-appearance: none;
+         appearance: none;
+         width: 100%;
+         height: 6px;
+         border-radius: 99px;
+         background: linear-gradient(to right, var(--ac) var(--p, 0%), #E1E4F2 var(--p, 0%));
+         margin: 18px 0 0;
+         cursor: pointer
+      }
+
+      .rng::-webkit-slider-thumb {
+         -webkit-appearance: none;
+         width: 22px;
+         height: 22px;
+         border-radius: 50%;
+         background: #fff;
+         border: 4px solid var(--ac);
+         box-shadow: 0 2px 8px rgba(0, 0, 0, .2)
+      }
+
+      .rng::-moz-range-thumb {
+         width: 14px;
+         height: 14px;
+         border-radius: 50%;
+         background: #fff;
+         border: 4px solid var(--ac)
+      }
+
+      .af {
+         display: flex;
+         flex-wrap: wrap;
+         align-items: center;
+         gap: 6px;
+         padding: 10px 20px;
+         border-bottom: 1px solid var(--line);
+         background: #FBFBFE
+      }
+
+      .af:empty {
+         display: none
+      }
+
+      .chip {
+         display: inline-flex;
+         align-items: center;
+         gap: 6px;
+         padding: 4px 5px 4px 11px;
+         border-radius: 99px;
+         background: var(--acs);
+         color: var(--ac);
+         font-size: 12.5px;
+         font-weight: 600
+      }
+
+      .chip button {
+         width: 18px;
+         height: 18px;
+         border-radius: 50%;
+         display: grid;
+         place-items: center;
+         background: rgba(90, 90, 245, .16)
+      }
+
+      .af .all {
+         margin-left: auto;
+         font-size: 12.5px;
+         font-weight: 600;
+         color: var(--mut);
+         text-decoration: underline;
+         text-underline-offset: 3px
+      }
+
+      .rows {
+         overflow: auto;
+         flex: 1;
+         min-height: 0
+      }
+
+      .row {
+         display: flex;
+         gap: 14px;
+         width: 100%;
+         text-align: left;
+         padding: 16px 20px;
+         border-bottom: 1px solid var(--line);
+         position: relative;
+         align-items: flex-start;
+         transition: background .15s
+      }
+
+      .row:hover {
+         background: #FAFAFF
+      }
+
+      .row.sel {
+         background: var(--acs)
+      }
+
+      .row.sel::before {
+         content: "";
+         position: absolute;
+         left: 0;
+         top: 0;
+         bottom: 0;
+         width: 3px;
+         background: var(--ac)
+      }
+
+      .rw {
+         flex: 1;
+         min-width: 0;
+         display: grid;
+         gap: 4px
+      }
+
+      .rw-t {
+         display: flex;
+         justify-content: space-between;
+         gap: 8px
+      }
+
+      .rw-t b {
+         font-weight: 650;
+         font-size: 15.5px;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis
+      }
+
+      .rw-t time {
+         font-size: 12px;
+         color: var(--mut);
+         flex: none
+      }
+
+      .rw-r {
+         font-size: 13.5px;
+         color: #3B3F5C;
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis
+      }
+
+      .rw-l {
+         display: flex;
+         align-items: center;
+         gap: 6px;
+         font-size: 12.5px;
+         color: var(--mut);
+         min-width: 0
+      }
+
+      .rw-l>span:first-of-type {
+         white-space: nowrap;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         min-width: 0
+      }
+
+      .rw-l svg {
+         flex: none
+      }
+
+      .sep {
+         width: 3px;
+         height: 3px;
+         border-radius: 50%;
+         background: #B9BDD3;
+         flex: none
+      }
+
+      .tp {
+         font-weight: 600;
+         white-space: nowrap
+      }
+
+      .tp.int {
+         color: var(--ac)
+      }
+
+      .tp.ip {
+         color: #B26A00
+      }
+
+      .tp.ft {
+         color: #087A5A
+      }
+
+      .tp.oth {
+         color: var(--mut)
+      }
+
+      .rw-m {
+         display: flex;
+         gap: 6px;
+         align-items: center;
+         flex-wrap: wrap;
+         margin-top: 5px
+      }
+
+      .pill {
+         padding: 2px 9px;
+         border-radius: 99px;
+         font-weight: 600;
+         font-size: 12px
+      }
+
+      .pill.pk {
+         background: #E3F7EF;
+         color: #087A5A
+      }
+
+      .pill.b-urgent {
+         background: #FFE9E0;
+         color: #C4441B
+      }
+
+      .pill.b-week {
+         background: #FFF1D0;
+         color: #9A6400
+      }
+
+      .pill.b-later,
+      .pill.b-none {
+         background: #EEF0F8;
+         color: #5A5F7E
+      }
+
+      .pill.b-closed {
+         background: #F0F1F5;
+         color: #8A8FA6
+      }
+
+      .eb {
+         display: inline-flex;
+         align-items: center;
+         gap: 4px;
+         padding: 2px 9px 2px 6px;
+         border-radius: 99px;
+         font-size: 12px;
+         font-weight: 600
+      }
+
+      .eb svg {
+         width: 13px;
+         height: 13px
+      }
+
+      .eb.yes {
+         background: #DDF5EA;
+         color: #087A5A
+      }
+
+      .eb.no {
+         background: #FDE4E0;
+         color: #B3341B
+      }
+
+      .eb.maybe {
+         background: #FFF1D0;
+         color: #946000
+      }
+
+      .eb.open {
+         background: #EEF0F8;
+         color: #5A5F7E
+      }
+
+      .lgo img {
+         position: absolute;
+         inset: 0;
+         width: 100%;
+         height: 100%;
+         object-fit: contain;
+         box-sizing: border-box;
+         padding: calc(var(--s)*.17);
+         display: none
+      }
+
+      .lgo.has {
+         background: #fff !important;
+         box-shadow: inset 0 0 0 1px rgba(15, 18, 50, .10)
+      }
+
+      .lgo.has img {
+         display: block
+      }
+
+      .lgo.has b {
+         visibility: hidden
+      }
+
+      /* company logo tile */
+      .lgo {
+         --s: 48px;
+         position: relative;
+         flex: none;
+         width: var(--s);
+         height: var(--s);
+         border-radius: calc(var(--s)*.28);
+         background: var(--bg1, #4A8BE8);
+         display: grid;
+         place-items: center;
+         overflow: hidden;
+         color: #fff;
+         box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06)
+      }
+
+      .lgo b {
+         font-size: calc(var(--s)*.38);
+         line-height: 1;
+         font-weight: 700;
+         letter-spacing: -.02em
+      }
+
+      .lgo.lg {
+         --s: 78px
+      }
+
+      .lgo.sm {
+         --s: 30px
+      }
+
+      /* detail */
+      .detail {
+         overflow: auto;
+         background: linear-gradient(180deg, #F6F6FE, #fff 300px);
+         min-height: 0;
+         position: relative
+      }
+
+      .dh {
+         padding: 30px 44px 0
+      }
+
+      .bk {
+         display: none;
+         align-items: center;
+         gap: 6px;
+         color: var(--ac);
+         font-weight: 600;
+         margin-bottom: 16px
+      }
+
+      .id {
+         display: flex;
+         align-items: center;
+         gap: 16px
+      }
+
+      .tag {
+         display: inline-block;
+         font-size: 12.5px;
+         font-weight: 600;
+         padding: 3px 10px;
+         border-radius: 99px;
+         background: var(--acs);
+         color: var(--ac)
+      }
+
+      .tag.ip {
+         background: #FFF1D8;
+         color: #9A5B00
+      }
+
+      .tag.ft {
+         background: #DFF6EC;
+         color: #087A5A
+      }
+
+      .tag.oth {
+         background: #EEF0F8;
+         color: #5A5F7E
+      }
+
+      .posted {
+         display: block;
+         font-size: 13px;
+         color: var(--mut);
+         margin-top: 7px
+      }
+
+      .dh h2 {
+         font-size: 36px;
+         letter-spacing: -.035em;
+         margin: 18px 0 6px;
+         line-height: 1.08;
+         color: var(--ink)
+      }
+
+      .dh .rl {
+         font-size: 17px;
+         color: #3B3F5C
+      }
+
+      .metrics {
+         display: grid;
+         grid-template-columns: repeat(3, 1fr);
+         gap: 14px;
+         padding: 26px 44px
+      }
+
+      .mt {
+         background: #fff;
+         border: 1px solid var(--line);
+         border-radius: 18px;
+         padding: 18px;
+         display: flex;
+         flex-direction: column;
+         gap: 4px;
+         box-shadow: 0 8px 24px -18px rgba(40, 40, 110, .25);
+         min-width: 0
+      }
+
+      .mt.rg {
+         flex-direction: row;
+         align-items: center;
+         gap: 14px
+      }
+
+      .mt.rg>div {
+         display: flex;
+         flex-direction: column;
+         gap: 3px
+      }
+
+      .k {
+         font-size: 12.5px;
+         color: var(--mut);
+         font-weight: 500
+      }
+
+      .v {
+         font-size: 19px;
+         font-weight: 700;
+         letter-spacing: -.01em;
+         display: flex;
+         align-items: center;
+         gap: 6px;
+         color: var(--ink)
+      }
+
+      .v.big {
+         font-size: 34px;
+         letter-spacing: -.04em;
+         align-items: baseline
+      }
+
+      .v.big small {
+         font-size: 14px;
+         font-weight: 600;
+         color: var(--mut);
+         letter-spacing: 0
+      }
+
+      .s {
+         font-size: 12.5px;
+         color: var(--mut)
+      }
+
+      .body {
+         padding: 0 44px 110px;
+         display: grid;
+         gap: 26px;
+         max-width: 860px
+      }
+
+      .body h4 {
+         font-size: 14px;
+         font-weight: 700;
+         margin-bottom: 10px
+      }
+
+      .body h4 em {
+         font-weight: 500;
+         color: var(--mut);
+         margin-left: 6px;
+         font-style: normal
+      }
+
+      .ck {
+         list-style: none;
+         display: grid;
+         gap: 9px
+      }
+
+      .ck li {
+         display: flex;
+         gap: 10px;
+         line-height: 1.45;
+         color: #2E3250
+      }
+
+      .ck svg {
+         flex: none;
+         margin-top: 2px;
+         color: var(--mint)
+      }
+
+      .chips {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 8px
+      }
+
+      .chips span {
+         padding: 6px 13px;
+         border-radius: 10px;
+         background: #F1F2FA;
+         font-size: 13.5px;
+         font-weight: 500
+      }
+
+      .chips.prep span {
+         background: #FFF3D6
+      }
+
+      .wa {
+         background: #E7F7E1;
+         border-radius: 6px 18px 18px 18px;
+         padding: 14px 16px;
+         line-height: 1.55;
+         color: #1F3B22;
+         font-size: 14px;
+         max-width: 560px;
+         box-shadow: 0 1px 1px rgba(0, 0, 0, .06);
+         white-space: pre-wrap;
+         overflow-wrap: anywhere
+      }
+
+      .wa small {
+         display: block;
+         margin-top: 8px;
+         color: #5C7A5C;
+         font-size: 12px;
+         white-space: normal
+      }
+
+      /* application link banner */
+      .app-link {
+         display: flex;
+         align-items: center;
+         gap: 14px;
+         border-radius: 18px;
+         background: linear-gradient(135deg, #ECECFF 0%, #E5F0FF 100%);
+         border: 1px solid #C9C9FF;
+         padding: 16px 20px
+      }
+
+      .app-link svg {
+         flex: none;
+         color: var(--ac)
+      }
+
+      .app-link-body {
+         display: flex;
+         flex-direction: column;
+         gap: 2px;
+         min-width: 0;
+         flex: 1
+      }
+
+      .app-link-body span {
+         font-size: 12px;
+         font-weight: 600;
+         color: var(--ac);
+         text-transform: uppercase;
+         letter-spacing: .04em
+      }
+
+      .app-link-body a {
+         font-size: 14px;
+         font-weight: 600;
+         color: #2829A0;
+         word-break: break-all;
+         text-decoration: none;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+         display: block
+      }
+
+      .app-link-body a:hover {
+         text-decoration: underline
+      }
+
+      .app-link-btn {
+         padding: 10px 18px;
+         border-radius: 12px;
+         background: var(--ac);
+         color: #fff;
+         font-weight: 700;
+         font-size: 13.5px;
+         white-space: nowrap;
+         text-decoration: none;
+         display: inline-block;
+         flex: none;
+         transition: background .15s
+      }
+
+      .app-link-btn:hover {
+         background: #4545E0
+      }
+
+      .act {
+         position: sticky;
+         bottom: 0;
+         display: flex;
+         gap: 10px;
+         padding: 30px 44px 20px;
+         background: linear-gradient(transparent, #fff 40%);
+         margin-top: -60px
+      }
+
+      .act button {
+         padding: 12px 22px;
+         border-radius: 12px;
+         font-weight: 600;
+         font-size: 14.5px
+      }
+
+      .act .pri {
+         background: var(--ac);
+         color: #fff;
+         box-shadow: 0 4px 12px rgba(90, 90, 245, .25)
+      }
+
+      .act .pri.on {
+         background: var(--ink)
+      }
+
+      .act .sec {
+         background: #fff;
+         border: 1px solid var(--line);
+         color: var(--ink)
+      }
+
+      .act .sec.on {
+         background: var(--acs);
+         border-color: #C9C9FF;
+         color: var(--ac)
+      }
+
+      .none {
+         padding: 44px 24px;
+         color: var(--mut);
+         text-align: center;
+         display: grid;
+         gap: 12px;
+         justify-items: center
+      }
+
+      .none button {
+         color: var(--ac);
+         font-weight: 600
+      }
+
+      /* eligibility card in detail */
+      .eg {
+         border-radius: 20px;
+         border: 1px solid var(--line);
+         background: #fff;
+         padding: 18px 20px
+      }
+
+      .eg.yes {
+         background: #F0FBF6;
+         border-color: #BFE8D6
+      }
+
+      .eg.no {
+         background: #FFF5F2;
+         border-color: #F8D8CF
+      }
+
+      .eg.maybe {
+         background: #FFF9E8;
+         border-color: #F1DDA0
+      }
+
+      .eg-h {
+         display: flex;
+         align-items: center;
+         gap: 12px
+      }
+
+      .eg-ic {
+         width: 40px;
+         height: 40px;
+         border-radius: 13px;
+         display: grid;
+         place-items: center;
+         color: #fff;
+         flex: none;
+         background: var(--ac)
+      }
+
+      .yes .eg-ic {
+         background: #0FA97F
+      }
+
+      .no .eg-ic {
+         background: #EA5E33
+      }
+
+      .maybe .eg-ic {
+         background: var(--amb)
+      }
+
+      .eg-h b {
+         font-size: 16px;
+         font-weight: 700;
+         display: block;
+         color: var(--ink)
+      }
+
+      .eg-h small {
+         color: var(--mut);
+         font-size: 13px
+      }
+
+      .eg-h>button {
+         margin-left: auto;
+         color: var(--ac);
+         font-weight: 600;
+         font-size: 13.5px;
+         white-space: nowrap
+      }
+
+      .eg-l {
+         list-style: none;
+         display: grid;
+         margin-top: 14px;
+         border-top: 1px solid rgba(0, 0, 0, .07)
+      }
+
+      .eg-l li {
+         display: grid;
+         grid-template-columns: 22px 92px 1fr auto;
+         gap: 10px;
+         align-items: center;
+         padding: 10px 0;
+         border-bottom: 1px solid rgba(0, 0, 0, .05);
+         font-size: 14px
+      }
+
+      .eg-l li:last-child {
+         border-bottom: 0;
+         padding-bottom: 0
+      }
+
+      .eg-l .m {
+         width: 20px;
+         height: 20px;
+         border-radius: 50%;
+         display: grid;
+         place-items: center;
+         color: #fff;
+         background: #C4C8DC
+      }
+
+      .eg-l .m svg {
+         width: 12px;
+         height: 12px
+      }
+
+      .eg-l li.ok .m {
+         background: #0FA97F
+      }
+
+      .eg-l li.bad .m {
+         background: #EA5E33
+      }
+
+      .eg-l .kk {
+         font-weight: 600;
+         color: var(--ink)
+      }
+
+      .eg-l .n {
+         color: #3B3F5C
+      }
+
+      .eg-l .h {
+         font-weight: 600;
+         font-size: 13px;
+         color: var(--mut)
+      }
+
+      .eg-l li.ok .h {
+         color: #087A5A
+      }
+
+      .eg-l li.bad .h {
+         color: #EA5E33
+      }
+
+      /* eligibility card v2 */
+      .eg2 {
+         --c: #6C6FE8;
+         --c2: #F3F4FF;
+         --cb: #DADCF7;
+         --ct: #4A4FC9;
+         position: relative;
+         border-radius: 24px;
+         padding: 22px 22px 20px 28px;
+         overflow: hidden;
+         border: 1px solid var(--cb);
+         background: linear-gradient(135deg, var(--c2) 0%, #fff 62%);
+         box-shadow: 0 14px 34px -20px rgba(30, 30, 90, .35)
+      }
+
+      .eg2::before {
+         content: "";
+         position: absolute;
+         left: 0;
+         top: 0;
+         bottom: 0;
+         width: 6px;
+         background: var(--c)
+      }
+
+      .eg2.yes {
+         --c: #0FA97F;
+         --c2: #E9FAF2;
+         --cb: #BFE8D6;
+         --ct: #087A5A
+      }
+
+      .eg2.no {
+         --c: #EA5E33;
+         --c2: #FFF0EA;
+         --cb: #F8D3C7;
+         --ct: #C2411B
+      }
+
+      .eg2.maybe {
+         --c: #E9A100;
+         --c2: #FFF7E0;
+         --cb: #F1DDA0;
+         --ct: #8A6100
+      }
+
+      .eg2-top {
+         display: flex;
+         align-items: center;
+         gap: 16px;
+         flex-wrap: wrap
+      }
+
+      .eg2-ring {
+         position: relative;
+         width: 68px;
+         height: 68px;
+         flex: none
+      }
+
+      .eg2-ring svg {
+         display: block;
+         width: 100%;
+         height: 100%
+      }
+
+      .eg2-ring b {
+         position: absolute;
+         inset: 0;
+         display: grid;
+         place-items: center;
+         font-size: 16px;
+         font-weight: 800;
+         color: var(--ct);
+         letter-spacing: -.02em
+      }
+
+      .eg2-ico {
+         width: 54px;
+         height: 54px;
+         border-radius: 17px;
+         display: grid;
+         place-items: center;
+         background: var(--c);
+         color: #fff;
+         flex: none
+      }
+
+      .eg2-tt {
+         flex: 1;
+         min-width: 200px
+      }
+
+      .eg2-badge {
+         display: inline-flex;
+         align-items: center;
+         gap: 6px;
+         padding: 4px 11px 4px 8px;
+         border-radius: 999px;
+         background: var(--c);
+         color: #fff;
+         font-size: 11.5px;
+         font-weight: 700;
+         letter-spacing: .05em;
+         text-transform: uppercase;
+         margin-bottom: 7px
+      }
+
+      .eg2-badge svg {
+         width: 13px;
+         height: 13px
+      }
+
+      .eg2-tt b {
+         display: block;
+         font-size: 19px;
+         line-height: 1.25;
+         font-weight: 700;
+         letter-spacing: -.02em;
+         color: var(--ink)
+      }
+
+      .eg2-tt small {
+         display: block;
+         margin-top: 3px;
+         color: var(--mut);
+         font-size: 13.5px;
+         line-height: 1.45
+      }
+
+      .eg2-edit {
+         padding: 9px 17px;
+         border-radius: 999px;
+         background: #fff;
+         border: 1px solid var(--cb);
+         color: var(--ct);
+         font-weight: 700;
+         font-size: 13.5px;
+         white-space: nowrap;
+         transition: background .15s, color .15s, transform .15s
+      }
+
+      .eg2-edit:hover {
+         background: var(--c);
+         border-color: var(--c);
+         color: #fff;
+         transform: translateY(-1px)
+      }
+
+      .eg2-edit.pri {
+         background: var(--c);
+         border-color: var(--c);
+         color: #fff
+      }
+
+      .eg2-grid {
+         display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+         gap: 10px;
+         margin-top: 18px
+      }
+
+      .eg2-it {
+         display: flex;
+         align-items: center;
+         gap: 11px;
+         padding: 12px 14px;
+         border-radius: 16px;
+         background: #fff;
+         border: 1px solid rgba(20, 20, 70, .08);
+         min-width: 0
+      }
+
+      .eg2-it.ok {
+         border-color: #BFE8D6;
+         background: linear-gradient(#fff, #F4FCF8)
+      }
+
+      .eg2-it.bad {
+         border-color: #F5C3B4;
+         background: linear-gradient(#fff, #FFF6F3);
+         box-shadow: 0 0 0 3px rgba(234, 94, 51, .08)
+      }
+
+      .eg2-it.unk {
+         border-style: dashed
+      }
+
+      .eg2-m {
+         width: 30px;
+         height: 30px;
+         border-radius: 50%;
+         display: grid;
+         place-items: center;
+         color: #fff;
+         background: #C4C8DC;
+         flex: none
+      }
+
+      .eg2-it.ok .eg2-m {
+         background: #0FA97F
+      }
+
+      .eg2-it.bad .eg2-m {
+         background: #EA5E33
+      }
+
+      .eg2-m svg {
+         width: 15px;
+         height: 15px
+      }
+
+      .eg2-it div {
+         min-width: 0
+      }
+
+      .eg2-it small {
+         display: block;
+         font-size: 11px;
+         font-weight: 700;
+         letter-spacing: .06em;
+         text-transform: uppercase;
+         color: var(--mut)
+      }
+
+      .eg2-it b {
+         display: block;
+         font-size: 14.5px;
+         font-weight: 600;
+         color: var(--ink);
+         overflow-wrap: anywhere
+      }
+
+      .eg2-you {
+         margin-left: auto;
+         padding: 4px 10px;
+         border-radius: 999px;
+         font-size: 12.5px;
+         font-weight: 700;
+         white-space: nowrap;
+         background: #EEF0F8;
+         color: #5A5F7E
+      }
+
+      .eg2-it.ok .eg2-you {
+         background: #DDF5EA;
+         color: #087A5A
+      }
+
+      .eg2-it.bad .eg2-you {
+         background: #FFE3DA;
+         color: #C2411B
+      }
+
+      .eg2-tip {
+         margin-top: 14px;
+         padding: 11px 14px;
+         border-radius: 14px;
+         background: rgba(255, 255, 255, .75);
+         border: 1px dashed var(--cb);
+         color: #3B3F5C;
+         font-size: 13px;
+         line-height: 1.5
+      }
+
+      .eg2-tip strong {
+         color: var(--ct)
+      }
+
+      .eg-l li.nm .n {
+         color: #8A8FA8
+      }
+
+      /* flyout panels */
+      .fly {
+         position: absolute;
+         left: 88px;
+         top: 16px;
+         width: 360px;
+         max-height: calc(100% - 32px);
+         overflow: auto;
+         background: #fff;
+         border-radius: 22px;
+         box-shadow: 0 30px 70px -14px rgba(20, 20, 70, .42), 0 0 0 1px var(--line);
+         padding: 20px;
+         z-index: 30;
+         opacity: 0;
+         transform: translateX(-10px);
+         pointer-events: none;
+         visibility: hidden;
+         transition: opacity .18s, transform .18s, visibility 0s .18s
+      }
+
+      .fly.open {
+         opacity: 1;
+         transform: none;
+         pointer-events: auto;
+         visibility: visible;
+         transition-delay: 0s
+      }
+
+      .fh {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 6px
+      }
+
+      .fh h3 {
+         font-size: 19px;
+         letter-spacing: -.02em
+      }
+
+      .fc {
+         width: 34px;
+         height: 34px;
+         border-radius: 10px;
+         display: grid;
+         place-items: center;
+         color: var(--mut)
+      }
+
+      .fc:hover {
+         background: var(--bg)
+      }
+
+      .fs {
+         color: var(--mut);
+         font-size: 13.5px;
+         line-height: 1.5;
+         margin-bottom: 14px
+      }
+
+      .dopt {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         width: 100%;
+         text-align: left;
+         padding: 11px 12px;
+         border-radius: 12px;
+         font-weight: 600;
+         font-size: 14.5px
+      }
+
+      .dopt:hover {
+         background: var(--bg)
+      }
+
+      .dopt.on {
+         background: var(--acs);
+         color: var(--ac)
+      }
+
+      .dopt span {
+         flex: 1
+      }
+
+      .dopt small {
+         color: var(--mut);
+         font-weight: 500;
+         font-size: 12.5px
+      }
+
+      .dopt em {
+         font-style: normal;
+         min-width: 28px;
+         text-align: center;
+         background: var(--bg);
+         color: var(--mut);
+         border-radius: 99px;
+         padding: 2px 8px;
+         font-size: 12.5px;
+         font-weight: 700
+      }
+
+      .dopt.on em {
+         background: #fff;
+         color: var(--ac)
+      }
+
+      .dsep {
+         height: 1px;
+         background: var(--line);
+         margin: 6px 4px
+      }
+
+      .fg {
+         display: grid;
+         grid-template-columns: 1fr 1fr;
+         gap: 12px
+      }
+
+      .fg .full {
+         grid-column: 1/-1
+      }
+
+      .fg label,
+      .fg .lab {
+         display: grid;
+         gap: 6px;
+         font-size: 12.5px;
+         font-weight: 600;
+         color: var(--mut)
+      }
+
+      .fld {
+         height: 42px;
+         border: 1px solid var(--line);
+         border-radius: 12px;
+         padding: 0 12px;
+         background: #fff;
+         color: var(--ink);
+         width: 100%
+      }
+
+      .fld:focus {
+         outline: 2px solid var(--ac);
+         outline-offset: 0;
+         border-color: var(--ac)
+      }
+
+      .tgl {
+         display: flex;
+         align-items: center;
+         gap: 12px;
+         margin-top: 16px;
+         padding: 12px 14px;
+         border-radius: 14px;
+         background: var(--bg);
+         font-size: 14px;
+         font-weight: 600;
+         cursor: pointer
+      }
+
+      .tgl span {
+         flex: 1
+      }
+
+      .tgl input {
+         -webkit-appearance: none;
+         appearance: none;
+         width: 42px;
+         height: 24px;
+         border-radius: 99px;
+         background: #CDD1E6;
+         position: relative;
+         cursor: pointer;
+         transition: background .2s;
+         flex: none
+      }
+
+      .tgl input::after {
+         content: "";
+         position: absolute;
+         top: 3px;
+         left: 3px;
+         width: 18px;
+         height: 18px;
+         border-radius: 50%;
+         background: #fff;
+         transition: transform .2s;
+         box-shadow: 0 1px 3px rgba(0, 0, 0, .25)
+      }
+
+      .tgl input:checked {
+         background: var(--ac)
+      }
+
+      .tgl input:checked::after {
+         transform: translateX(18px)
+      }
+
+      .sum {
+         margin-top: 14px;
+         padding: 12px 14px;
+         border-radius: 14px;
+         background: var(--acs);
+         font-size: 13.5px;
+         line-height: 1.5;
+         color: #2A2A7A
+      }
+
+      .lnk {
+         margin-top: 12px;
+         color: var(--mut);
+         font-weight: 600;
+         font-size: 13.5px;
+         text-decoration: underline;
+         text-underline-offset: 3px
+      }
+
+      /* calendar widget */
+      .cal-nav-bar {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         margin: 10px 0 12px;
+         padding: 0 2px
+      }
+
+      .cal-nav-title {
+         font-size: 15px;
+         font-weight: 700;
+         color: var(--ink)
+      }
+
+      .cal-nav-btns {
+         display: flex;
+         align-items: center;
+         gap: 4px
+      }
+
+      .cal-btn {
+         width: 32px;
+         height: 32px;
+         border-radius: 8px;
+         display: grid;
+         place-items: center;
+         color: var(--ink);
+         background: var(--bg);
+         transition: background .15s, color .15s
+      }
+
+      .cal-btn:hover {
+         background: #E6E9F5;
+         color: var(--ac)
+      }
+
+      .cal-today-sm {
+         padding: 5px 10px;
+         border-radius: 8px;
+         background: var(--bg);
+         font-size: 12px;
+         font-weight: 600;
+         color: var(--mut);
+         transition: background .15s
+      }
+
+      .cal-today-sm:hover {
+         background: #E6E9F5;
+         color: var(--ac)
+      }
+
+      .cal-grid {
+         display: grid;
+         grid-template-columns: repeat(7, 1fr);
+         gap: 4px;
+         text-align: center
+      }
+
+      .cal-head {
+         font-size: 11.5px;
+         font-weight: 700;
+         color: var(--mut);
+         padding: 6px 0;
+         text-transform: uppercase;
+         letter-spacing: 0.04em
+      }
+
+      .cal-day {
+         position: relative;
+         height: 38px;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         border-radius: 10px;
+         font-size: 13.5px;
+         font-weight: 500;
+         color: var(--ink);
+         background: none;
+         transition: background .15s, color .15s;
+         cursor: pointer
+      }
+
+      .cal-day:hover:not(.pad) {
+         background: var(--bg)
+      }
+
+      .cal-day.pad {
+         color: #C2C6DC;
+         pointer-events: none;
+         opacity: .35
+      }
+
+      .cal-day.has {
+         font-weight: 700
+      }
+
+      .cal-day.today {
+         box-shadow: inset 0 0 0 1.5px var(--ac);
+         font-weight: 700
+      }
+
+      .cal-day.sel {
+         background: var(--ac) !important;
+         color: #fff !important;
+         font-weight: 700
+      }
+
+      .cal-day.sel .cal-dot {
+         background: #fff
+      }
+
+      .cal-day.sel .cal-cnt {
+         background: rgba(255, 255, 255, .3);
+         color: #fff
+      }
+
+      .cal-dot {
+         position: absolute;
+         bottom: 4px;
+         width: 5px;
+         height: 5px;
+         border-radius: 50%;
+         background: var(--ac)
+      }
+
+      .cal-cnt {
+         position: absolute;
+         top: 2px;
+         right: 2px;
+         font-size: 9.5px;
+         font-weight: 700;
+         line-height: 1;
+         padding: 2px 4px;
+         border-radius: 99px;
+         background: var(--acs);
+         color: var(--ac)
+      }
+
+      .cal-footer {
+         margin-top: 14px;
+         display: flex;
+         flex-direction: column;
+         gap: 8px
+      }
+
+      .cal-status {
+         padding: 9px 12px;
+         border-radius: 10px;
+         background: var(--acs);
+         font-size: 12.5px;
+         color: var(--ac);
+         font-weight: 600;
+         display: flex;
+         justify-content: space-between;
+         align-items: center
+      }
+
+      .cal-status button {
+         text-decoration: underline;
+         color: var(--ink);
+         font-weight: 600;
+         font-size: 12px
+      }
+
+      /* Apply button in Am I eligible */
+      .btn-apply {
+         width: 100%;
+         height: 44px;
+         background: var(--ac);
+         color: #fff;
+         border-radius: 12px;
+         font-size: 14.5px;
+         font-weight: 700;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         gap: 8px;
+         margin-top: 14px;
+         box-shadow: 0 4px 14px rgba(90, 90, 245, .35);
+         transition: background .15s, transform .1s, box-shadow .15s
+      }
+
+      .btn-apply:hover {
+         background: #4646E6;
+         box-shadow: 0 6px 18px rgba(90, 90, 245, .4)
+      }
+
+      .btn-apply:active {
+         transform: scale(0.98)
+      }
+
+      @media(max-width:1240px) {
+         .app {
+            grid-template-columns: 76px 380px 1fr
+         }
+
+         .dh,
+         .metrics,
+         .body,
+         .act {
+            padding-left: 28px;
+            padding-right: 28px
+         }
+
+         .metrics {
+            grid-template-columns: 1fr
+         }
+      }
+
+      @media(max-width:860px) {
+         .wrap {
+            padding: 0;
+            height: auto;
+            min-height: 0
+         }
+
+         .app {
+            grid-template-columns: 1fr;
+            height: auto;
+            min-height: 100vh;
+            border-radius: 0;
+            box-shadow: none;
+            padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px))
+         }
+
+         .side {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 40;
+            height: calc(64px + env(safe-area-inset-bottom, 0px));
+            padding: 0 0 env(safe-area-inset-bottom, 0px);
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            gap: 0
+         }
+
+         .side .lg,
+         .side .sp {
+            display: none
+         }
+
+         .side button::after {
+            display: none
+         }
+
+         .detail {
+            display: none
+         }
+
+         .rows {
+            overflow: visible
+         }
+
+         .app.show-d .list {
+            display: none
+         }
+
+         .app.show-d .detail {
+            display: block
+         }
+
+         .bk {
+            display: flex
+         }
+
+         .dh {
+            padding-top: 22px
+         }
+
+         .dh h2 {
+            font-size: 29px
+         }
+
+         .fly {
+            position: fixed;
+            left: 8px;
+            right: 8px;
+            top: auto;
+            bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+            width: auto;
+            max-height: 70vh
+         }
+
+         .act {
+            bottom: calc(64px + env(safe-area-inset-bottom, 0px))
+         }
+
+         .eg-l li {
+            grid-template-columns: 22px 1fr auto
+         }
+
+         .eg-l .n {
+            grid-column: 2/-1;
+            grid-row: 2;
+            font-size: 13px
+         }
+
+         .two {
+            grid-template-columns: 1fr
+         }
+      }
+
+      @media(prefers-reduced-motion:reduce) {
+         * {
+            transition-duration: .01ms !important
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div class="wrap">
+      <div class="app" id="app"></div>
+   </div>
+
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+   <script src="config.js"></script>
+   <script>
+      /* =====================================================================
+         CONFIG & CURATED DATA (Matching PlacementPulse Inbox v2 screenshot)
+         ===================================================================== */
+      const sb = window.supabase.createClient(window.PP_CONFIG.SUPABASE_URL, window.PP_CONFIG.SUPABASE_ANON_KEY);
+      const POLL_MS = 60000;
+
+      // Curated brand colors for logos to match screenshot aesthetic
+      const BRAND_COLORS = {
+         'einfochips': '#3884D8',
+         'qualcomm': '#2048A8',
+         'texas instruments': '#D8232A',
+         'cisco': '#049FD9',
+         'razorpay': '#0C2340',
+         'juspay': '#18A0FB',
+         'bosch': '#EA1C24',
+         'tata elxsi': '#1A4F8B',
+         'zoho': '#E02020',
+         'infosys': '#007CC3',
+         'l&t': '#004B87',
+         'tcs': '#242A38'
+      };
+
+      // No hardcoded sample data — dashboard is fully driven by the API
+      const DEFAULT_UPDATES = [];
+
+      /* ---------- time + formatting helpers ---------- */
+      const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const DAY = 864e5;
+      // Use real current time for all calculations
+      let NOW = new Date(), TODAY0 = null;
+      const midnight = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+      const tick = () => { NOW = new Date(); TODAY0 = midnight(NOW); };
+      tick();
+
+      const $ = (s, r) => (r || document).querySelector(s);
+      const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const p2 = n => String(n).padStart(2, '0');
+      const fmtD = d => d.getDate() + ' ' + MO[d.getMonth()];
+      const dmy = d => p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + String(d.getFullYear()).slice(2);
+      const fmtT = d => { let h = d.getHours(), m = d.getMinutes(); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + ':' + p2(m) + ' ' + ap };
+      const num = n => parseFloat(Number(n).toFixed(2)).toString();
+      const lpa = n => '₹' + num(n) + ' LPA';
+      const r2 = v => Math.round(v * 100) / 100;
+      const dkey = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+      const ageDays = d => Math.round((TODAY0 - midnight(d)) / DAY);
+      const dayLabel = d => { const a = ageDays(d); return a === 0 ? 'Today' : a === 1 ? 'Yesterday' : dmy(d) };
+      const ago = u => {
+         const a = ageDays(u.posted);
+         if (a <= 0) {
+            const h = (NOW - u.posted) / 36e5;
+            return h < 1 ? 'Just now' : Math.max(1, Math.round(h)) + 'h ago';
+         }
+         return a === 1 ? 'Yesterday' : a + 'd ago';
+      };
+      const leftTxt = u => u.b === 'none' ? 'No deadline' : u.closed ? 'Closed' : u.days <= 0 ? 'Closes today' : u.days === 1 ? 'Closes tomorrow' : u.days + ' days left';
+      const leftShort = u => u.b === 'none' ? 'No deadline' : u.closed ? 'Closed' : u.days <= 0 ? 'Today' : u.days === 1 ? 'Tomorrow' : u.days + ' days';
+
+      /* ---------- turning DB rows into what the UI needs ---------- */
+      function parseDate(v) {
+         if (!v) return null; let s = String(v).trim().replace(' ', 'T');
+         if (!/(Z|[+-]\d\d:?\d\d)$/.test(s)) s += 'Z';
+         const d = new Date(s); return isNaN(d) ? null : d;
+      }
+      function parseDeadline(r) {
+         const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(r.deadline_date || '');
+         if (!m) return { dl: null, hasTime: false };
+         let h = 23, mi = 59, has = false; const txt = r.deadline || '';
+         const t = /\b(\d{1,2})(?:[:.](\d{2}))?\s*(a\.?m\.?|p\.?m\.?)(?![a-z])/i.exec(txt);
+         if (t) { h = (+t[1]) % 12; if (/p/i.test(t[3])) h += 12; mi = t[2] ? +t[2] : 0; has = true }
+         else { const t24 = /\b([01]?\d|2[0-3]):([0-5]\d)\b/.exec(txt); if (t24) { h = +t24[1]; mi = +t24[2]; has = true } }
+         return { dl: new Date(+m[1], +m[2] - 1, +m[3], h, mi, 0), hasTime: has };
+      }
+      const GENERIC = new Set(['pvt', 'ltd', 'limited', 'private', 'inc', 'llp', 'corp', 'corporation', 'technologies', 'technology', 'solutions', 'india', 'software', 'services', 'global', 'systems']);
+      function shortName(c) {
+         const w = String(c).replace(/\(.*?\)/g, ' ').replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
+         while (w.length > 1 && GENERIC.has(w[w.length - 1].toLowerCase())) w.pop();
+         return w.join(' ') || String(c);
+      }
+      function initials(n) {
+         const w = n.replace(/[^A-Za-z0-9 ]/g, '').trim().split(/\s+/).filter(Boolean);
+         if (!w.length) return '?';
+         return w.length >= 2 ? (w[0][0] + w[1][0]) : w[0].slice(0, 2);
+      }
+      function hueOf(s) { let h = 0; for (const c of s.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) % 360; return h }
+      const splitList = v => Array.isArray(v) ? v.filter(Boolean).map(x => String(x).trim()).filter(Boolean) : (v ? String(v).split(/\s*[,;\n•]\s*/).map(x => x.trim()).filter(Boolean) : []);
+      const LOC_ALIAS = { bangalore: 'Bengaluru', bengaluru: 'Bengaluru', bombay: 'Mumbai', gurgaon: 'Gurugram', madras: 'Chennai', calcutta: 'Kolkata', pune: 'Pune', 'pan-india': 'Pan India', 'pan india': 'Pan India', 'all india': 'Pan India' };
+      function splitLocs(v) {
+         if (!v) return []; const seen = {}, out = [];
+         String(v).split(/\s*(?:,|\/|&|;|\band\b|\|)\s*/i).map(x => x.trim()).filter(Boolean).forEach(x => {
+            const k = x.toLowerCase(), n = LOC_ALIAS[k] || (x.charAt(0).toUpperCase() + x.slice(1));
+            if (!seen[n.toLowerCase()]) { seen[n.toLowerCase()] = 1; out.push(n) }
+         });
+         return out;
+      }
+      const BRANCHES = ['CSE', 'IT', 'ECE', 'EEE', 'E&I', 'Mechanical', 'Civil', 'Mechatronics', 'Other'];
+      function canonBranches(list) {
+         if (!Array.isArray(list) || !list.length) return null;
+         const out = new Set(); let any = false;
+         list.forEach(x => {
+            const s = String(x).toLowerCase(); let hit = false; const add = (...a) => { a.forEach(b => out.add(b)); hit = true };
+            if (/\b(all|any)\b.*(branch|stream|discipline|engineering)|all engineering|across branches/.test(s)) { any = true; return }
+            if (/mechatronic/.test(s)) add('Mechatronics'); else if (/mechanic|\bmech\b|\bme\b/.test(s)) add('Mechanical');
+            if (/civil/.test(s)) add('Civil');
+            if (/electrical\s*(&|and)\s*electronic|\beee\b/.test(s) || /electrical|\bee\b/.test(s)) add('EEE');
+            if (/instrumentation|\be&i\b|\beie\b|\bei\b/.test(s)) add('E&I');
+            if (/comput|\bcse\b|\bcs\b|cs&e|compsci/.test(s)) add('CSE');
+            if (/information\s*(tech|sci)|\bit\b|\bise\b/.test(s)) add('IT');
+            let ece = false; if (/\bece\b|\bec\b|e&c|communication|telecom|entc|e&tc/.test(s)) { add('ECE'); ece = true }
+            if (!ece && !/electrical/.test(s) && /electronic/.test(s)) add('ECE', 'E&I');
+            if (/\bai\b|aiml|data science|machine learning|artificial/.test(s)) add('Other');
+            if (!hit && !/^(b\.?\s?e\.?|b\.?\s?tech\.?|m\.?\s?tech|be\/b\.?tech|engineering|graduates?|bachelors?.*)$/.test(s.trim())) add('Other');
+         });
+         if (any || !out.size) return null;
+         return [...out];
+      }
+      /* ---------- company location (city) instead of the reporting venue ---------- */
+      const CITIES = {
+         'Bengaluru': ['bengaluru', 'bangalore', 'bengalooru'], 'Hyderabad': ['hyderabad', 'secunderabad'], 'Chennai': ['chennai', 'madras'],
+         'Pune': ['pune'], 'Mumbai': ['mumbai', 'bombay', 'navi mumbai', 'thane'], 'Delhi': ['delhi', 'new delhi'], 'Gurugram': ['gurugram', 'gurgaon'],
+         'Noida': ['noida', 'greater noida'], 'Kolkata': ['kolkata', 'calcutta'], 'Ahmedabad': ['ahmedabad'], 'Coimbatore': ['coimbatore'],
+         'Kochi': ['kochi', 'cochin', 'ernakulam'], 'Thiruvananthapuram': ['thiruvananthapuram', 'trivandrum'], 'Mysuru': ['mysuru', 'mysore'],
+         'Mangaluru': ['mangaluru', 'mangalore'], 'Nagpur': ['nagpur'], 'Jaipur': ['jaipur'], 'Indore': ['indore'], 'Chandigarh': ['chandigarh', 'mohali'],
+         'Bhubaneswar': ['bhubaneswar'], 'Vadodara': ['vadodara', 'baroda'], 'Lucknow': ['lucknow'], 'Visakhapatnam': ['visakhapatnam', 'vizag'],
+         'Hubballi': ['hubballi', 'hubli'], 'Jamshedpur': ['jamshedpur'], 'Remote': ['remote', 'work from home', 'wfh']
+      };
+      const CITY_RX = Object.entries(CITIES).map(([n, a]) => [n, new RegExp('\\b(?:' + a.join('|') + ')\\b', 'i')]);
+      // Main India base of each company. To fix or add one: lowercase name, letters and digits only.
+      const HQ = {
+         google: 'Bengaluru', microsoft: 'Hyderabad', amazon: 'Bengaluru', meta: 'Hyderabad', apple: 'Hyderabad', adobe: 'Noida', oracle: 'Bengaluru',
+         ibm: 'Bengaluru', intel: 'Bengaluru', nvidia: 'Bengaluru', amd: 'Bengaluru', qualcomm: 'Bengaluru', cisco: 'Bengaluru', salesforce: 'Hyderabad',
+         sap: 'Bengaluru', dell: 'Bengaluru', hp: 'Bengaluru', samsung: 'Bengaluru', texasinstruments: 'Bengaluru', ti: 'Bengaluru', nxp: 'Bengaluru',
+         broadcom: 'Bengaluru', micron: 'Hyderabad', bosch: 'Bengaluru', siemens: 'Mumbai', honeywell: 'Bengaluru', ge: 'Bengaluru', abb: 'Bengaluru',
+         tcs: 'Mumbai', tataconsultancyservices: 'Mumbai', tataconsultancy: 'Mumbai', infosys: 'Bengaluru', wipro: 'Bengaluru', hcl: 'Noida',
+         hcltech: 'Noida', techmahindra: 'Pune', ltimindtree: 'Mumbai', mindtree: 'Bengaluru', lt: 'Mumbai', larsentoubro: 'Mumbai',
+         tataelxsi: 'Bengaluru', mphasis: 'Bengaluru', persistent: 'Pune', coforge: 'Noida', hexaware: 'Mumbai', cognizant: 'Chennai',
+         capgemini: 'Mumbai', accenture: 'Bengaluru', deloitte: 'Hyderabad', kpmg: 'Bengaluru', ey: 'Bengaluru', pwc: 'Mumbai', zoho: 'Chennai',
+         freshworks: 'Chennai', razorpay: 'Bengaluru', juspay: 'Bengaluru', phonepe: 'Bengaluru', paytm: 'Noida', cred: 'Bengaluru',
+         zerodha: 'Bengaluru', groww: 'Bengaluru', swiggy: 'Bengaluru', zomato: 'Gurugram', flipkart: 'Bengaluru', myntra: 'Bengaluru',
+         meesho: 'Bengaluru', ola: 'Bengaluru', uber: 'Bengaluru', atlassian: 'Bengaluru', intuit: 'Bengaluru', paypal: 'Chennai', visa: 'Bengaluru',
+         mastercard: 'Pune', goldmansachs: 'Bengaluru', jpmorgan: 'Mumbai', morganstanley: 'Mumbai', barclays: 'Pune', hsbc: 'Pune',
+         wellsfargo: 'Hyderabad', hdfcbank: 'Mumbai', icicibank: 'Mumbai', axisbank: 'Mumbai', sbi: 'Mumbai', einfochips: 'Ahmedabad',
+         arm: 'Bengaluru', synopsys: 'Bengaluru', cadence: 'Noida', mathworks: 'Bengaluru', ansys: 'Pune', autodesk: 'Bengaluru',
+         thoughtworks: 'Bengaluru', walmart: 'Bengaluru', mahindra: 'Mumbai', tatamotors: 'Mumbai', reliance: 'Mumbai', jio: 'Mumbai',
+         airtel: 'Gurugram', havells: 'Noida', zensar: 'Pune', zeta: 'Bengaluru', cummins: 'Pune', ericsson: 'Bengaluru', nokia: 'Chennai',
+         philips: 'Bengaluru', lg: 'Noida', juniper: 'Bengaluru', bajaj: 'Pune'
+      };
+      function findCities(text) {
+         const t = String(text || ''), hits = [];
+         CITY_RX.forEach(([n, rx]) => { const m = rx.exec(t); if (m) hits.push([m.index, n]); });
+         if (/\bpan[\s-]?india\b|\ball india\b/i.test(t)) hits.push([-1, 'Pan India']);
+         return hits.sort((a, b) => a[0] - b[0]).map(h => h[1]);
+      }
+      function companyCities(short, full, r) {
+         const sg = x => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+         let c = findCities(r.location);
+         if (!c.length) { const h = HQ[sg(short)] || HQ[sg(full)] || HQ[sg(String(short).split(/\s+/)[0])]; if (h) c = [h]; }
+         if (!c.length) c = findCities(r.raw_message).slice(0, 2);
+         return c.slice(0, 3);
+      }
+      // first registration / form link found in the message text (fallback when none was saved)
+      function firstUrl(t) {
+         const ms = String(t || '').match(/(?:https?:\/\/|www\.)[^\s<>"']+|\b(?:forms\.gle|bit\.ly|tinyurl\.com|lnkd\.in)\/[^\s<>"']+/gi) || [];
+         const ok = ms.map(u => u.replace(/[.,;:!?)\]}>*]+$/, '')).map(u => /^https?:\/\//i.test(u) ? u : 'https://' + u)
+            .filter(u => !/^https?:\/\/(www\.)?(t\.me|telegram\.me|chat\.whatsapp\.com|wa\.me)\b/i.test(u));
+         return ok.find(u => /forms\.gle|docs\.google\.com\/forms|forms\.office\.com/i.test(u)) || ok[0] || '';
+      }
+      function normalize(r) {
+         if (!r || (r.company == null && !r.summary && !r.roles && !r.raw_message)) return null;
+         const posted = parseDate(r.date) || parseDate(r.created_at) || new Date();
+         const co = String(r.company || 'Unknown company').trim(), s = shortName(co);
+         const dd = parseDeadline(r), dl = dd.dl;
+         const closed = !!dl && dl < NOW, days = dl ? Math.round((midnight(dl) - TODAY0) / DAY) : null;
+         const t = String(r.position_type || '').toLowerCase();
+         const type = t.startsWith('intern') ? (r.has_ppo ? 'Internship + Placement' : 'Internship') : /full/.test(t) ? 'Full-time' : 'Other';
+         const pkg = r.package_lpa == null || r.package_lpa === '' ? null : +r.package_lpa;
+         const slug = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+         const cg = +r.eligibility_min_cgpa || 0;
+         return {
+            id: (r.chat_id || '') + ':' + r.message_id, grp: r.group_name || '', co, s, ini: initials(s), hue: hueOf(s), slug, cdom: r.company_domain || '',
+            type, posted, dl, hasTime: dd.hasTime, dlText: r.deadline || '', days, closed,
+            b: closed ? 'closed' : dl ? (days <= 2 ? 'urgent' : days <= 7 ? 'week' : 'later') : 'none',
+            role: r.roles || '', sum: r.summary || '',
+            elig: splitList(r.eligibility),
+            req: {
+               br: canonBranches(r.eligibility_branches), batches: (String(r.eligibility_batch || '').match(/20\d\d/g) || []).map(Number),
+               cgpa: cg > 0 ? r2(cg) : 0, c10: +r.eligibility_min_10 || 0, c12: +r.eligibility_min_12 || 0, nb: r.eligibility_backlogs === 'no_active_backlogs_required'
+            },
+            pkg, pt: r.ctc || (pkg != null ? lpa(pkg) : ''),
+            stack: splitList(r.tech_stack), stackInferred: !!r.tech_stack_inferred, prep: splitList(r.prep_topics),
+            mode: r.location || '', locs: companyCities(s, co, r), modeNote: r.mode || '',
+            link: r.application_link || firstUrl(r.raw_message),
+            msg: r.raw_message || r.summary || ''
+         };
+      }
+
+      const TYPEC = { 'Internship': 'int', 'Internship + Placement': 'ip', 'Full-time': 'ft', 'Other': 'oth' };
+      const ic = (d, w, sw) => '<svg viewBox="0 0 24 24" width="' + (w || 20) + '" height="' + (w || 20) + '" fill="none" stroke="currentColor" stroke-width="' + (sw || 2) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+      const sz = (svg, n) => svg.replace(/width="\d+" height="\d+"/, 'width="' + n + '" height="' + n + '"');
+      const I = {
+         search: ic('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>', 18),
+         chev: ic('<path d="m6 9 6 6 6-6"/>', 16, 2.4),
+         pin: ic('<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>', 14, 2.2),
+         check: ic('<path d="m5 12.5 4.5 4.5L19 7.5"/>', 18, 2.6),
+         x: ic('<path d="M6 6l12 12M18 6 6 18"/>', 14, 2.6),
+         dash: ic('<path d="M6 12h12"/>', 14, 2.8),
+         q: ic('<path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>', 14, 2.6),
+         back: ic('<path d="m15 5-7 7 7 7"/>', 18, 2.4),
+         wire: ic('<path d="M4 12h3l2-6 4 12 2-6h5"/>', 22, 2.4),
+         feed: ic('<path d="M4 6h16M4 12h16M4 18h10"/>', 22),
+         mark: ic('<path d="M6 4h12v17l-6-4-6 4z"/>', 22),
+         cal: ic('<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>', 22),
+         cap: ic('<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5M22 9v6"/>', 22)
+      };
+
+      /* ---------- company logos: found by company name, loaded straight from the web (nothing is downloaded or stored) ---------- */
+      // To fix or add a company: lowercase name with only letters/digits -> website domain
+      const DOMAINS = {
+         google: 'google.com', microsoft: 'microsoft.com', amazon: 'amazon.com', meta: 'meta.com', apple: 'apple.com', adobe: 'adobe.com',
+         oracle: 'oracle.com', ibm: 'ibm.com', intel: 'intel.com', nvidia: 'nvidia.com', amd: 'amd.com', qualcomm: 'qualcomm.com', cisco: 'cisco.com',
+         salesforce: 'salesforce.com', sap: 'sap.com', dell: 'dell.com', hp: 'hp.com', samsung: 'samsung.com', texasinstruments: 'ti.com', ti: 'ti.com',
+         nxp: 'nxp.com', broadcom: 'broadcom.com', micron: 'micron.com', bosch: 'bosch.com', siemens: 'siemens.com', honeywell: 'honeywell.com',
+         tcs: 'tcs.com', tataconsultancyservices: 'tcs.com', tataconsultancy: 'tcs.com', infosys: 'infosys.com', wipro: 'wipro.com', hcl: 'hcltech.com',
+         hcltech: 'hcltech.com', techmahindra: 'techmahindra.com', ltimindtree: 'ltimindtree.com', mindtree: 'ltimindtree.com', lt: 'larsentoubro.com',
+         larsentoubro: 'larsentoubro.com', tataelxsi: 'tataelxsi.com', mphasis: 'mphasis.com', persistent: 'persistent.com', coforge: 'coforge.com',
+         hexaware: 'hexaware.com', cognizant: 'cognizant.com', capgemini: 'capgemini.com', accenture: 'accenture.com', deloitte: 'deloitte.com',
+         kpmg: 'kpmg.com', ey: 'ey.com', pwc: 'pwc.com', zoho: 'zoho.com', freshworks: 'freshworks.com', razorpay: 'razorpay.com', juspay: 'juspay.in',
+         phonepe: 'phonepe.com', paytm: 'paytm.com', cred: 'cred.club', zerodha: 'zerodha.com', groww: 'groww.in', swiggy: 'swiggy.com',
+         zomato: 'zomato.com', flipkart: 'flipkart.com', myntra: 'myntra.com', meesho: 'meesho.com', ola: 'olacabs.com', uber: 'uber.com',
+         atlassian: 'atlassian.com', intuit: 'intuit.com', paypal: 'paypal.com', visa: 'visa.com', mastercard: 'mastercard.com',
+         goldmansachs: 'goldmansachs.com', jpmorgan: 'jpmorgan.com', morganstanley: 'morganstanley.com', barclays: 'barclays.com', hsbc: 'hsbc.com',
+         wellsfargo: 'wellsfargo.com', hdfcbank: 'hdfcbank.com', icicibank: 'icicibank.com', axisbank: 'axisbank.com', sbi: 'sbi.co.in',
+         einfochips: 'einfochips.com', arm: 'arm.com', synopsys: 'synopsys.com', cadence: 'cadence.com', mathworks: 'mathworks.com', ansys: 'ansys.com',
+         autodesk: 'autodesk.com', thoughtworks: 'thoughtworks.com', walmart: 'walmart.com', mahindra: 'mahindra.com', tatamotors: 'tatamotors.com',
+         reliance: 'ril.com', jio: 'jio.com', airtel: 'airtel.in', havells: 'havells.com', zensar: 'zensar.com', cummins: 'cummins.com',
+         ericsson: 'ericsson.com', nokia: 'nokia.com', philips: 'philips.com', lg: 'lg.com', juniper: 'juniper.net', abb: 'abb.com', ge: 'ge.com',
+         cyient: 'cyient.com', airbus: 'airbus.com', faceprep: 'faceprep.in', bajaj: 'bajajfinserv.in', qnx: 'qnx.com'
+      };
+      // Public icon services, best first. A tiny/placeholder icon (under 32px) is skipped, then the next one is tried.
+      // Free client ID from developers.brandfetch.com - it is meant to sit in the page. Leave '' to use only the icon services.
+      const BRANDFETCH_ID = '1id8R4ELHPMMAwVBfi0';
+      const LOGO_SRC = [
+         ...(BRANDFETCH_ID ? [d => 'https://cdn.brandfetch.io/domain/' + encodeURIComponent(d) + '/w/256/h/256/fallback/404/type/icon?c=' + encodeURIComponent(BRANDFETCH_ID)] : []),
+         d => 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(d) + '&sz=128',
+         d => 'https://icons.duckduckgo.com/ip3/' + encodeURIComponent(d) + '.ico'
+      ];
+      const LOGO_Q = {};       // company -> list of image URLs to try, best first
+      const LOGO_CACHE = {};   // company -> the URL that worked, or false when nothing loaded
+      const slugOf = x => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      function domainsOf(u) {
+         const a = slugOf(u.s), b = slugOf(u.co), f = slugOf(String(u.s).split(/\s+/)[0]);
+         const known = DOMAINS[a] || DOMAINS[b] || (f.length >= 4 && DOMAINS[f]);
+         if (known) return [known];
+         if (u.cdom) return [u.cdom];   // website found by Gemini
+         if (a === 'unknowncompany' || a.length < 3) return [];
+         return [];   // unknown company: initials only (guessed domains showed wrong logos)
+      }
+      function lgNext(img) {
+         const k = img.dataset.k, q = LOGO_Q[k] || [], i = (+img.dataset.i || 0) + 1;
+         if (i < q.length) { img.dataset.i = i; img.src = q[i]; }
+         else { LOGO_CACHE[k] = false; const p = img.parentNode; if (p) p.classList.remove('has'); img.remove(); }
+      }
+      function lgOk(img) {
+         if (img.naturalWidth < 32) return lgNext(img);
+         LOGO_CACHE[img.dataset.k] = img.src;
+         if (img.parentNode) img.parentNode.classList.add('has');
+      }
+      const logo = (u, c) => {
+         const bg = BRAND_COLORS[u.s.toLowerCase()] || ('hsl(' + u.hue + ' 55% 42%)');
+         const k = slugOf(u.s) || String(u.id), hit = LOGO_CACHE[k];
+         let img = '';
+         if (hit) img = '<img alt="" src="' + esc(hit) + '">';
+         else if (hit === undefined) {
+            const q = [];
+            domainsOf(u).forEach(d => LOGO_SRC.forEach(f => q.push(f(d))));
+            if (q.length) { LOGO_Q[k] = q; img = '<img alt="" referrerpolicy="no-referrer" data-k="' + esc(k) + '" data-i="0" src="' + esc(q[0]) + '" onload="lgOk(this)" onerror="lgNext(this)">'; }
+         }
+         return '<span class="lgo ' + (c || '') + (hit ? ' has' : '') + '" style="background:' + bg + ';--bg1:' + bg + '" aria-hidden="true"><b>' + esc(u.ini) + '</b>' + img + '</span>';
+      };
+
+      /* ---------- state ---------- */
+      let U = [];
+      // Default student profile matching the screenshot
+      const DEFAULT_PROFILE = { branch: '', batch: '', cgpa: '', c10: '', c12: '', nb: '' };
+
+      const store = {
+         get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null') } catch (e) { return null } },
+         set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) { } }
+      };
+
+      const savedProf = store.get('pw_profile_v1');
+      const S = {
+         status: 'loading', grp: 'all', type: 'all', loc: 'all', min: 0, max: 25, q: '', day: 'all', savedOnly: false, onlyElig: false, sel: 1, panel: null, calYear: null, calMonth: null,
+         saved: new Set(), rem: new Set(),
+         prof: savedProf ? Object.assign({}, savedProf) : Object.assign({}, DEFAULT_PROFILE)
+      };
+
+      (store.get('pw_saved_v1') || []).forEach(i => S.saved.add(i));
+      (store.get('pw_rem_v1') || []).forEach(i => S.rem.add(i));
+      const saveProf = () => store.set('pw_profile_v1', S.prof);
+      const profSet = () => Object.values(S.prof).some(v => v !== '');
+
+      /* ---------- reminders (fire while the tab is open) ---------- */
+      const remDone = new Set(store.get('pw_remdone_v1') || []);
+      function checkReminders() {
+         if (!('Notification' in window) || Notification.permission !== 'granted') return;
+         const now = Date.now();
+         U.forEach(u => {
+            if (!S.rem.has(u.id) || remDone.has(u.id) || !u.dl) return;
+            const left = u.dl - now;
+            if (left > 0 && left <= DAY) {
+               remDone.add(u.id); store.set('pw_remdone_v1', [...remDone]);
+               new Notification(u.s + ' closes soon', { body: (u.role || u.sum || 'Deadline') + ' - ' + fmtD(u.dl) + (u.hasTime ? ' ' + fmtT(u.dl) : '') });
+            }
+         });
+      }
+
+      /* ---------- eligibility ---------- */
+      function checkElig(u, customProf) {
+         const p = customProf || S.prof, r = u.req, it = []; const n = v => { if (v === '') return null; const x = parseFloat(v); return isNaN(x) ? null : x };
+         if (!(r.br || r.batches.length || r.cgpa || r.c10 || r.c12 || r.nb)) return { v: 'open', it: [], fails: [], miss: [] };
+         const add = (k, need, have, ok, na) => it.push({ k, need, have, ok, na });
+         if (r.br) add('Branch', r.br.join(', '), p.branch || '', p.branch ? r.br.includes(p.branch) : null); else add('Branch', 'Any branch', '', true, true);
+         if (r.batches.length) add('Batch', r.batches.join(' or '), p.batch || '', p.batch ? r.batches.includes(+p.batch) : null);
+         if (r.cgpa) { const c = n(p.cgpa); add('CGPA', num(r.cgpa) + ' or above', p.cgpa, c == null || c > 10 ? null : r2(c) >= r.cgpa) }
+         if (r.c10) { const c = n(p.c10); add('Class 10', num(r.c10) + '% or above', p.c10 === '' ? '' : p.c10 + '%', c == null ? null : c >= r.c10) }
+         if (r.c12) { const c = n(p.c12); add('Class 12', num(r.c12) + '% or above', p.c12 === '' ? '' : p.c12 + '%', c == null ? null : c >= r.c12) }
+         if (r.nb) add('Backlogs', 'No active backlogs', p.nb === 'none' ? 'None' : p.nb === 'yes' ? 'Has backlogs' : '', p.nb ? p.nb === 'none' : null);
+         const fails = it.filter(i => i.ok === false), miss = it.filter(i => i.ok === null);
+         return { v: fails.length ? 'no' : miss.length ? 'maybe' : 'yes', it, fails, miss };
+      }
+      const EB = { yes: 'You qualify', no: 'Not eligible', maybe: 'Need more info', open: 'No criteria listed' };
+      const ebHTML = v => '<span class="eb ' + v + '">' + sz(v === 'yes' ? I.check : v === 'no' ? I.x : v === 'maybe' ? I.q : I.dash, 13) + EB[v] + '</span>';
+
+      /* ---------- filtering ---------- */
+      function filtered(o) {
+         o = o || {}; const q = S.q.trim().toLowerCase(), ps = profSet();
+         return U.filter(u => {
+            if (S.grp !== 'all' && u.grp !== S.grp) return false;
+            if (S.type !== 'all' && u.type !== S.type) return false;
+            if (S.loc !== 'all' && !u.locs.includes(S.loc)) return false;
+            if ((u.pkg || 0) < S.min) return false;
+            if (!o.skipDay && S.day !== 'all' && dkey(u.posted) !== S.day) return false;
+            if (S.savedOnly && !S.saved.has(u.id)) return false;
+            if (S.onlyElig && ps && checkElig(u).v === 'no') return false;
+            if (q && !(u.co + ' ' + u.role + ' ' + u.sum + ' ' + u.stack.join(' ') + ' ' + u.mode + ' ' + u.locs.join(' ')).toLowerCase().includes(q)) return false;
+            return true;
+         });
+      }
+      const anyFilter = () => S.type !== 'all' || S.loc !== 'all' || S.min > 0 || S.q.trim() || S.day !== 'all' || S.savedOnly || (S.onlyElig && profSet());
+
+      /* ---------- render ---------- */
+      function shell() {
+         $('#app').innerHTML =
+            '<nav class="side" aria-label="Filters"><div class="lg">' + I.wire + '</div>' +
+            '<button type="button" data-home data-tip="All updates" aria-label="All updates">' + I.feed + '</button>' +
+            '<button type="button" data-savedonly data-tip="Saved" aria-label="Show saved updates only">' + I.mark + '</button>' +
+            '<button type="button" data-panel="date" data-tip="Filter by date" aria-label="Filter by date">' + I.cal + '</button>' +
+            '<button type="button" data-panel="elig" data-tip="Am I eligible?" aria-label="Check my eligibility">' + I.cap + '</button></nav>' +
+            '<section class="list"><header class="lh"><h1>PlacementPulse <small><span data-count>0</span> <span data-word>updates</span></small></h1>' +
+            '<label class="srch">' + I.search + '<input data-f="q" placeholder="Search company, role or skill" aria-label="Search"></label>' +
+            '<div class="sg" id="groups"></div><div class="sg" id="types"></div>' +
+            '<div class="two"><label class="ctl"><span class="cl">Location</span><span class="slct">' + I.pin + '<select data-f="loc" id="locsel"></select>' + I.chev + '</span></label>' +
+            '<div class="ctl"><span class="cl">Min. package <b data-min>Any</b></span><input class="rng" id="rng" type="range" min="0" max="25" step="1" value="0" data-f="min" aria-label="Minimum package in LPA"></div></div></header>' +
+            '<div class="af" id="af"></div><div class="rows" id="rows"></div></section>' +
+            '<section class="detail" id="detail" aria-live="polite"></section>' +
+            '<div class="fly" id="fly" role="dialog" aria-modal="false"></div>';
+         buildControls(true);
+      }
+      let ctlSig = '';
+      function buildControls(force) {
+         const types = ['Internship', 'Internship + Placement', 'Full-time'];
+         if (U.some(u => u.type === 'Other')) types.push('Other');
+         const lc = {}; U.forEach(u => u.locs.forEach(l => { const k = l.toLowerCase(); lc[k] = lc[k] || { n: l, c: 0 }; lc[k].c++ }));
+         const locs = Object.values(lc).sort((a, b) => b.c - a.c || a.n.localeCompare(b.n));
+         if (S.loc !== 'all' && !locs.some(l => l.n === S.loc)) locs.push({ n: S.loc, c: 0 });
+         const top = U.reduce((m, u) => Math.max(m, u.pkg || 0), 0);
+         S.max = Math.min(100, Math.max(25, Math.ceil(top / 5) * 5));
+         const gc = {}; U.forEach(u => { if (u.grp) gc[u.grp] = (gc[u.grp] || 0) + 1 });
+         const groups = Object.keys(gc).sort();
+         if (S.grp !== 'all' && !groups.includes(S.grp)) S.grp = 'all';
+         const sig = JSON.stringify([types, locs, S.max, gc]);
+         if (!force && sig === ctlSig) return; ctlSig = sig;
+         $('#types').innerHTML = [['all', 'All types']].concat(types.map(t => [t, t])).map(t => '<button type="button" data-f="type" data-v="' + esc(t[0]) + '">' + esc(t[1]) + '</button>').join('');
+         $('#groups').innerHTML = groups.length < 2 ? '' : [['all', 'All groups', U.length]].concat(groups.map(g => [g, g, gc[g]])).map(g => '<button type="button" data-f="grp" data-v="' + esc(g[0]) + '">' + esc(g[1]) + ' <small>' + g[2] + '</small></button>').join('');
+         $('#locsel').innerHTML = '<option value="all">All locations</option>' + locs.map(l => '<option value="' + esc(l.n) + '">' + esc(l.n) + ' (' + l.c + ')</option>').join('');
+         $('#rng').max = S.max;
+      }
+      function rowHTML(u) {
+         const e = profSet() ? checkElig(u).v : null;
+         return '<button type="button" class="row' + (u.id === S.sel ? ' sel' : '') + '" data-select="' + u.id + '">' + logo(u) +
+            '<div class="rw"><div class="rw-t"><b>' + esc(u.s) + '</b><time>' + ago(u) + '</time></div><div class="rw-r">' + esc(u.role || u.sum || 'Details in the original message') + '</div>' +
+            '<div class="rw-l">' + I.pin + '<span>' + esc(u.locs.join(', ') || 'Location not stated') + '</span><i class="sep"></i><span class="tp ' + TYPEC[u.type] + '">' + u.type + '</span></div>' +
+            '<div class="rw-m">' + (u.pkg != null ? '<span class="pill pk">' + lpa(u.pkg) + '</span>' : '') + '<span class="pill b-' + u.b + '">' + leftShort(u) + '</span>' + (e ? ebHTML(e) : '') + '</div></div></button>';
+      }
+      function results(keep) {
+         const rows = $('#rows');
+         if (S.status !== 'ok') {
+            rows.innerHTML = S.status === 'loading' ? '<div class="none"><p>Loading updates…</p></div>' : '<div class="none"><p>Couldn\u2019t load updates.</p><button type="button" data-retry>Try again</button></div>';
+            $('#af').innerHTML = ''; $('#detail').innerHTML = ''; sync(); return;
+         }
+         const L = filtered();
+         if (!L.find(u => u.id === S.sel)) S.sel = L.length ? L[0].id : null;
+         const st = rows.scrollTop;
+         rows.innerHTML = L.map(rowHTML).join('') || (U.length ? '<div class="none"><p>No updates match these filters.</p><button type="button" data-clear>Clear filters</button></div>' : '<div class="none"><p>No updates yet.</p></div>');
+         rows.scrollTop = st;
+         renderAF(); detail(L.find(u => u.id === S.sel), keep); sync();
+      }
+      function renderAF() {
+         const c = [];
+         if (S.day !== 'all') {
+            const parts = S.day.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            c.push(['day', 'Date: ' + dayLabel(d) + ' (' + d.getDate() + ' ' + MO[d.getMonth()] + ')']);
+         }
+         if (S.savedOnly) c.push(['saved', 'Saved only']);
+         if (S.onlyElig && profSet()) c.push(['elig', 'Eligible for me']);
+         $('#af').innerHTML = c.map(x => '<span class="chip">' + x[1] + '<button type="button" data-rm="' + x[0] + '" aria-label="Remove filter">' + sz(I.x, 10) + '</button></span>').join('') + (c.length ? '<button type="button" class="all" data-clear>Clear all</button>' : '');
+      }
+      function egHTML(u) {
+         const r = checkElig(u);
+         if (r.v === 'open') return '<section class="eg"><div class="eg-h"><span class="eg-ic" style="background:#B9BDD3">' + I.cap + '</span><div><b>No eligibility criteria found</b><small>The original message doesn\u2019t state any, so there\u2019s nothing to check yet.</small></div></div></section>';
+         if (!profSet()) return '<section class="eg"><div class="eg-h"><span class="eg-ic">' + I.cap + '</span><div><b>Check if you qualify</b><small>Add your branch, CGPA and marks once. We compare them with every update.</small></div><button type="button" data-panel="elig">Enter details</button></div></section>';
+         const h = r.v === 'yes' ? ['You are eligible', 'You meet all ' + r.it.length + ' requirements'] :
+            r.v === 'no' ? ['You don\u2019t meet ' + r.fails.length + (r.fails.length > 1 ? ' requirements' : ' requirement'), 'Not eligible for this one as things stand'] :
+               ['Looks fine so far', 'Add your ' + r.miss.map(x => x.k.toLowerCase()).join(', ') + ' to be sure'];
+         const P = S.prof || {}, mine = { 'Branch': P.branch || '', 'Batch': P.batch || '', 'CGPA': P.cgpa || '', 'Class 10': P.c10 ? P.c10 + '%' : '', 'Class 12': P.c12 ? P.c12 + '%' : '' };
+         const by = {}; r.it.forEach(i => { by[i.k] = i; });
+         const rows = ['Branch', 'Batch', 'CGPA', 'Class 10', 'Class 12'].map(k => by[k] || { k: k, need: 'Not mentioned', have: mine[k], ok: 'none' }).concat(by['Backlogs'] ? [by['Backlogs']] : []);
+         return '<section class="eg ' + r.v + '"><div class="eg-h"><span class="eg-ic">' + sz(r.v === 'yes' ? I.check : r.v === 'no' ? I.x : I.q, 20) + '</span><div><b>' + h[0] + '</b><small>' + h[1] + '</small></div><button type="button" data-panel="elig">Edit details</button></div>' +
+            '<ul class="eg-l">' + rows.map(i => '<li class="' + (i.ok === true ? 'ok' : i.ok === false ? 'bad' : i.ok === 'none' ? 'unk nm' : 'unk') + '"><span class="m">' + sz(i.ok === true ? I.check : i.ok === false ? I.x : I.dash, 12) + '</span><span class="kk">' + i.k + '</span><span class="n">' + esc(i.need) + '</span><span class="h">' + (i.ok === 'none' ? (i.have ? 'You: ' + esc(i.have) : '') : i.na ? 'Not required' : i.have ? 'You: ' + esc(i.have) : 'Not added') + '</span></li>').join('') + '</ul></section>';
+      }
+      const ring = u => {
+         const C = 2 * Math.PI * 26; const none = u.b === 'none'; const p = none ? 0 : u.closed ? 1 : Math.max(.07, 1 - Math.min(Math.max(u.days, 0), 14) / 14);
+         const col = u.closed || none ? '#9AA0B8' : u.b === 'urgent' ? '#F2622E' : u.b === 'week' ? '#E9A100' : '#0FA97F';
+         return '<svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true" style="flex:none"><circle cx="32" cy="32" r="26" fill="none" stroke="#E7E9F5" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="' + col + '" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + (C * p).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 32 32)"/><text x="32" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#15172E">' + (none || u.closed ? '–' : Math.max(u.days, 0)) + '</text></svg>';
+      };
+      function chipsSec(title, arr, cls, note) {
+         return arr.length ? '<section><h4>' + title + (note ? ' <em>' + note + '</em>' : '') + '</h4><div class="chips' + (cls ? ' ' + cls : '') + '">' + arr.map(s => '<span>' + esc(s) + '</span>').join('') + '</div></section>' : '';
+      }
+      function detail(u, keep) {
+         const el = $('#detail');
+         if (!u) { el.innerHTML = '<div class="none">' + (U.length ? 'Select an update to read it.' : 'Nothing to show yet.') + '</div>'; return }
+         const sv = S.saved.has(u.id), rm = S.rem.has(u.id), top = el.scrollTop;
+         const dlBlock = u.dl ? '<b class="v">' + fmtD(u.dl) + '</b><span class="s">' + (u.hasTime ? fmtT(u.dl) + ', ' : '') + leftTxt(u).toLowerCase() + '</span>' : '<b class="v">Not pinned down</b><span class="s">' + esc(u.dlText || 'Check the original message') + '</span>';
+         el.innerHTML = '<div class="dh"><button type="button" class="bk" data-back>' + I.back + 'All updates</button>' +
+            '<div class="id">' + logo(u, 'lg') + '<div><span class="tag ' + TYPEC[u.type] + '">' + u.type + '</span><span class="posted">Posted ' + dmy(u.posted) + ', ' + fmtT(u.posted) + '</span></div></div>' +
+            '<h2>' + esc(u.co) + '</h2><p class="rl">' + esc(u.role || u.sum) + '</p></div>' +
+            '<div class="metrics"><div class="mt"><span class="k">Package</span>' + (u.pkg != null ? '<b class="v big">₹' + num(u.pkg) + '<small>LPA</small></b><span class="s">' + esc(u.pt) + '</span>' : '<b class="v">Not stated</b><span class="s">' + esc(u.pt || 'Check the original message') + '</span>') + '</div>' +
+            '<div class="mt rg">' + ring(u) + '<div><span class="k">Deadline</span>' + dlBlock + '</div></div>' +
+            '<div class="mt"><span class="k">Location</span><b class="v">' + I.pin + esc(u.locs.join(', ') || 'Not stated') + '</b><span class="s">' + esc(u.mode ? 'Report at: ' + u.mode : (u.modeNote || 'Company location')) + '</span></div></div>' +
+            '<div class="body">' + egHTML(u) +
+            (u.elig.length ? '<section><h4>Eligibility</h4><ul class="ck">' + u.elig.map(e => '<li>' + I.check + '<span>' + esc(e) + '</span></li>').join('') + '</ul></section>' : '') +
+            chipsSec('Tech stack', u.stack, '', u.stackInferred ? 'estimated' : '') +
+            chipsSec('Suggested prep', u.prep, 'prep', '') +
+            (u.link ? '<section><h4>Application link</h4><div class="app-link"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><div class="app-link-body"><span>Apply here</span><a href="' + esc(u.link) + '" target="_blank" rel="noopener noreferrer">' + esc(u.link) + '</a></div><a href="' + esc(u.link) + '" target="_blank" rel="noopener noreferrer" class="app-link-btn">Open &#x2197;</a></div></section>' : '') +
+            '<section><h4>Original message</h4><div class="wa">' + esc(u.msg) + '<small>Forwarded from the placement group</small></div></section></div>' +
+            '<div class="act"><button type="button" class="pri' + (sv ? ' on' : '') + '" data-tog="saved" data-id="' + u.id + '">' + (sv ? 'Saved' : 'Save for later') + '</button>' +
+            '<button type="button" class="sec' + (rm ? ' on' : '') + '" data-tog="rem" data-id="' + u.id + '">' + (rm ? 'Reminder set' : 'Remind me a day before') + '</button></div>';
+         el.scrollTop = keep ? top : 0;
+      }
+
+      /* ---------- panels ---------- */
+      const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      function initCalView() {
+         if (S.day !== 'all') {
+            const parts = S.day.split('-').map(Number);
+            S.calYear = parts[0];
+            S.calMonth = parts[1] - 1;
+         } else if (S.calYear == null) {
+            const d = U.length && U[0].posted ? U[0].posted : NOW;
+            S.calYear = d.getFullYear();
+            S.calMonth = d.getMonth();
+         }
+      }
+
+      function dateHTML() {
+         initCalView();
+         const y = S.calYear, m = S.calMonth;
+         const base = filtered({ skipDay: true });
+         const cnt = {};
+         base.forEach(u => { const k = dkey(u.posted); cnt[k] = (cnt[k] || 0) + 1 });
+
+         let firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
+         const daysInMonth = new Date(y, m + 1, 0).getDate();
+         const daysInPrev = new Date(y, m, 0).getDate();
+
+         const cells = [];
+         for (let i = firstDay - 1; i >= 0; i--) {
+            cells.push('<span class="cal-day pad">' + (daysInPrev - i) + '</span>');
+         }
+         const todayKey = dkey(NOW);
+         for (let d = 1; d <= daysInMonth; d++) {
+            const k = y + '-' + (m + 1) + '-' + d;
+            const c = cnt[k] || 0;
+            const isToday = (k === todayKey);
+            const isSel = (S.day === k);
+            let cls = 'cal-day';
+            if (c > 0) cls += ' has';
+            if (isToday) cls += ' today';
+            if (isSel) cls += ' sel';
+            let dot = '';
+            if (c > 0) {
+               dot = c > 1 ? '<span class="cal-cnt">' + c + '</span>' : '<span class="cal-dot"></span>';
+            }
+            cells.push('<button type="button" class="' + cls + '" data-cal-date="' + k + '" title="' + d + ' ' + MONTH_NAMES[m] + ' ' + y + (c ? ' (' + c + ' update' + (c > 1 ? 's' : '') + ')' : '') + '">' + d + dot + '</button>');
+         }
+         const rem = (7 - (cells.length % 7)) % 7;
+         for (let d = 1; d <= rem; d++) {
+            cells.push('<span class="cal-day pad">' + d + '</span>');
+         }
+
+         const weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+         const wHead = weekdays.map(w => '<span class="cal-head">' + w + '</span>').join('');
+
+         let selStatus = '';
+         if (S.day !== 'all') {
+            const parts = S.day.split('-').map(Number);
+            const dObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            const c = cnt[S.day] || 0;
+            selStatus = '<div class="cal-status"><span>Filtered: <b>' + dayLabel(dObj) + '</b> (' + c + ' update' + (c === 1 ? '' : 's') + ')</span><button type="button" data-day="all">Clear</button></div>';
+         }
+
+         return '<div class="fh"><h3>Filter by date</h3><button type="button" class="fc" data-closepanel aria-label="Close">' + I.x + '</button></div>' +
+            '<p class="fs">Select a day on the calendar to view its updates.</p>' +
+            '<div class="cal-nav-bar">' +
+            '<span class="cal-nav-title">' + MONTH_NAMES[m] + ' ' + y + '</span>' +
+            '<div class="cal-nav-btns">' +
+            '<button type="button" class="cal-today-sm" data-cal-today>Today</button>' +
+            '<button type="button" class="cal-btn" data-cal-nav="-1" aria-label="Previous month">' + sz(I.back, 15) + '</button>' +
+            '<button type="button" class="cal-btn" data-cal-nav="1" aria-label="Next month" style="transform:rotate(180deg)">' + sz(I.back, 15) + '</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="cal-grid">' + wHead + cells.join('') + '</div>' +
+            '<div class="cal-footer">' +
+            selStatus +
+            '<button type="button" class="dopt' + (S.day === 'all' ? ' on' : '') + '" data-day="all"><span>Show all dates</span><em>' + base.length + '</em></button>' +
+            '</div>';
+      }
+
+      const opt = (v, l, cur) => '<option value="' + esc(v) + '"' + (String(cur) === String(v) ? ' selected' : '') + '>' + esc(l) + '</option>';
+      function eligHTML() {
+         const p = S.prof;
+         return '<div class="fh"><h3>Am I eligible?</h3><button type="button" class="fc" data-closepanel aria-label="Close">' + I.x + '</button></div>' +
+            '<p class="fs">Enter your academic details and click Apply to see which placement updates you qualify for.</p>' +
+            '<div class="fg">' +
+            '<label class="full">Branch<select class="fld" data-p="branch" id="ep-branch"><option value="">Select branch</option>' + BRANCHES.map(b => opt(b, b, p.branch)).join('') + '</select></label>' +
+            '<label>Passing-out year<select class="fld" data-p="batch" id="ep-batch"><option value="">Select</option>' + [2026, 2027, 2028].map(y => opt(y, y, p.batch)).join('') + '</select></label>' +
+            '<label>CGPA (out of 10)<input class="fld" type="number" inputmode="decimal" min="0" max="10" step="0.01" placeholder="e.g. 7.8" data-p="cgpa" id="ep-cgpa" value="' + esc(p.cgpa) + '"></label>' +
+            '<label>Class 10 %<input class="fld" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="e.g. 85" data-p="c10" id="ep-c10" value="' + esc(p.c10) + '"></label>' +
+            '<label>Class 12 %<input class="fld" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="e.g. 82" data-p="c12" id="ep-c12" value="' + esc(p.c12) + '"></label>' +
+            '<div class="lab full">Active backlogs<div class="sg"><button type="button" data-nb="none"' + (p.nb === 'none' ? ' class="on"' : '') + '>None</button><button type="button" data-nb="yes"' + (p.nb === 'yes' ? ' class="on"' : '') + '>I have backlogs</button></div></div>' +
+            '</div>' +
+            '<label class="tgl"><span>Hide updates I\u2019m not eligible for</span><input type="checkbox" data-o="onlyElig" id="ep-onlyElig"' + (S.onlyElig ? ' checked' : '') + '></label>' +
+            '<div class="sum" id="sum">' + sumText() + '</div>' +
+            '<button type="button" class="btn-apply" data-apply-elig>' + sz(I.check, 16) + ' Apply Changes</button>' +
+            '<button type="button" class="lnk" data-clearprof>Clear my details</button>';
+      }
+
+      function sumText(draftProf) {
+         const p = draftProf || S.prof;
+         const hasAny = Object.values(p).some(v => v !== '');
+         if (!hasAny) return 'Fill in your details and click Apply to see which updates you qualify for.';
+         let y = 0, m = 0, n = 0, o = 0;
+         U.forEach(u => { const v = checkElig(u, p).v; v === 'yes' ? y++ : v === 'no' ? n++ : v === 'open' ? o++ : m++ });
+         return 'Out of ' + U.length + ' updates: <b>' + y + '</b> you qualify for, <b>' + m + '</b> need more info, <b>' + n + '</b> you don\u2019t meet' + (o ? ', and <b>' + o + '</b> list no criteria' : '') + '.';
+      }
+
+      function updateEligSum() {
+         const b = $('#ep-branch'), bt = $('#ep-batch'), cg = $('#ep-cgpa'), c10 = $('#ep-c10'), c12 = $('#ep-c12');
+         const nbBtn = $('#fly [data-nb].on');
+         const draft = {
+            branch: b ? b.value : '',
+            batch: bt ? bt.value : '',
+            cgpa: cg ? cg.value : '',
+            c10: c10 ? c10.value : '',
+            c12: c12 ? c12.value : '',
+            nb: nbBtn ? nbBtn.dataset.nb : ''
+         };
+         const sm = $('#sum');
+         if (sm) sm.innerHTML = sumText(draft);
+      }
+
+      function applyEligChanges() {
+         const b = $('#ep-branch'), bt = $('#ep-batch'), cg = $('#ep-cgpa'), c10 = $('#ep-c10'), c12 = $('#ep-c12'), oe = $('#ep-onlyElig');
+         const nbBtn = $('#fly [data-nb].on');
+         if (b) S.prof.branch = b.value;
+         if (bt) S.prof.batch = bt.value;
+         if (cg) S.prof.cgpa = cg.value;
+         if (c10) S.prof.c10 = c10.value;
+         if (c12) S.prof.c12 = c12.value;
+         S.prof.nb = nbBtn ? nbBtn.dataset.nb : '';
+
+         // Respect the user toggle - default is false, so ineligible updates remain visible
+         S.onlyElig = oe ? oe.checked : false;
+
+         saveProf();
+         closePanel();
+         results(true);
+      }
+
+      function openPanel(n) {
+         S.panel = n;
+         if (n === 'date') initCalView();
+         const f = $('#fly');
+         f.innerHTML = n === 'date' ? dateHTML() : eligHTML();
+         f.classList.add('open');
+         sync();
+      }
+      function closePanel() { S.panel = null; $('#fly').classList.remove('open'); sync() }
+
+      function sync() {
+         document.querySelectorAll('[data-f][data-v]').forEach(b => { const on = String(S[b.dataset.f]) === b.dataset.v; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on) });
+         document.querySelectorAll('input[data-f],select[data-f]').forEach(el => {
+            if (el === document.activeElement && el.type !== 'range') return;
+            el.value = S[el.dataset.f];
+            if (el.type === 'range') el.style.setProperty('--p', (S.min / S.max * 100) + '%');
+         });
+         document.querySelectorAll('[data-min]').forEach(el => el.textContent = S.min ? '₹' + S.min + '+ LPA' : 'Any');
+         const n = S.status === 'ok' ? filtered().length : 0;
+         document.querySelectorAll('[data-count]').forEach(el => el.textContent = n);
+         document.querySelectorAll('[data-word]').forEach(el => el.textContent = n === 1 ? 'update' : 'updates');
+         $('[data-home]').classList.toggle('on', !anyFilter() && !S.panel);
+         $('[data-savedonly]').classList.toggle('on', S.savedOnly);
+         const d = $('[data-panel="date"]'), e = $('[data-panel="elig"]');
+         d.classList.toggle('on', S.panel === 'date'); d.classList.toggle('has', S.day !== 'all');
+         e.classList.toggle('on', S.panel === 'elig'); e.classList.toggle('has', profSet());
+      }
+
+      /* ---------- data loading ---------- */
+      let lastSig = '', lastRender = 0;
+      function setData(rows) {
+         const sig = JSON.stringify(rows);
+         if (S.status === 'ok' && sig === lastSig && Date.now() - lastRender < 15 * 6e4) return;
+         lastSig = sig; lastRender = Date.now(); tick();
+         U = rows.map(normalize).filter(Boolean).sort((a, b) => b.posted - a.posted || b.id - a.id);
+         S.status = 'ok'; buildControls(); results(true);
+      }
+      async function load(first) {
+         try {
+            const { data, error } = await sb.from('placements_feed').select('*').order('date', { ascending: false }).limit(1000);
+            if (error) throw error;
+            setData(data || []); checkReminders();
+         } catch (err) {
+            console.warn('[placementpulse] fetch failed', err);
+            if (first) { S.status = "error"; results(); }
+         }
+      }
+
+      /* ---------- events ---------- */
+      document.addEventListener('input', e => {
+         const t = e.target; if (!t.dataset) return;
+         if (t.dataset.f) { const f = t.dataset.f; if (f === 'min') S.min = Math.max(0, parseFloat(t.value) || 0); else S[f] = t.value; results(true); return }
+         if (t.dataset.p || t.dataset.o) { updateEligSum(); return }
+      });
+      document.addEventListener('click', e => {
+         const t = e.target; let x;
+         if (S.panel && !t.closest('#fly') && !t.closest('[data-panel]')) closePanel();
+         if (t.closest('[data-retry]')) { S.status = 'loading'; results(); load(true); return }
+         if (x = t.closest('[data-f][data-v]')) { S[x.dataset.f] = x.dataset.v; results(true); return }
+         if (t.closest('[data-home]') || t.closest('[data-clear]')) { S.type = 'all'; S.loc = 'all'; S.min = 0; S.q = ''; S.day = 'all'; S.savedOnly = false; S.onlyElig = false; if (S.panel) closePanel(); results(); return }
+         if (x = t.closest('[data-panel]')) { S.panel === x.dataset.panel ? closePanel() : openPanel(x.dataset.panel); return }
+         if (t.closest('[data-closepanel]')) { closePanel(); return }
+         if (t.closest('[data-savedonly]')) { S.savedOnly = !S.savedOnly; results(); return }
+         if (t.closest('[data-apply-elig]')) { applyEligChanges(); return }
+         if (x = t.closest('[data-cal-nav]')) {
+            const dir = +x.dataset.calNav;
+            S.calMonth += dir;
+            if (S.calMonth < 0) { S.calMonth = 11; S.calYear--; }
+            else if (S.calMonth > 11) { S.calMonth = 0; S.calYear++; }
+            $('#fly').innerHTML = dateHTML();
+            return;
+         }
+         if (t.closest('[data-cal-today]')) {
+            S.calYear = NOW.getFullYear();
+            S.calMonth = NOW.getMonth();
+            $('#fly').innerHTML = dateHTML();
+            return;
+         }
+         if (x = t.closest('[data-cal-date]')) {
+            const dt = x.dataset.calDate;
+            S.day = (S.day === dt ? 'all' : dt);
+            results();
+            $('#fly').innerHTML = dateHTML();
+            return;
+         }
+         if (x = t.closest('[data-day]')) {
+            S.day = x.dataset.day;
+            results();
+            if (S.panel === 'date') $('#fly').innerHTML = dateHTML();
+            return;
+         }
+         if (x = t.closest('[data-rm]')) {
+            const k = x.dataset.rm;
+            if (k === 'day') { S.day = 'all'; if (S.panel === 'date') $('#fly').innerHTML = dateHTML(); }
+            if (k === 'saved') S.savedOnly = false;
+            if (k === 'elig') S.onlyElig = false;
+            results();
+            return;
+         }
+         if (x = t.closest('[data-nb]')) {
+            const wasOn = x.classList.contains('on');
+            document.querySelectorAll('#fly [data-nb]').forEach(b => b.classList.remove('on'));
+            if (!wasOn) x.classList.add('on');
+            updateEligSum();
+            return;
+         }
+         if (t.closest('[data-clearprof]')) {
+            S.prof = { branch: '', batch: '', cgpa: '', c10: '', c12: '', nb: '' };
+            S.onlyElig = false;
+            saveProf();
+            openPanel('elig');
+            results(true);
+            return;
+         }
+         if (x = t.closest('[data-select]')) { S.sel = x.dataset.select; document.querySelectorAll('.row').forEach(r => r.classList.toggle('sel', r === x)); detail(U.find(u => u.id === S.sel)); $('#app').classList.add('show-d'); return }
+         if (t.closest('[data-back]')) { $('#app').classList.remove('show-d'); return }
+         if (x = t.closest('[data-tog]')) {
+            const k = x.dataset.tog, set = S[k], id = x.dataset.id; set.has(id) ? set.delete(id) : set.add(id); store.set(k === 'saved' ? 'pw_saved_v1' : 'pw_rem_v1', [...set]); if (k === 'rem') { remDone.delete(id); store.set('pw_remdone_v1', [...remDone]); if (set.has(id) && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(checkReminders); else checkReminders(); } detail(U.find(u => u.id === id), true);
+            if (S.savedOnly && k === 'saved') results(true); return
+         }
+      });
+      document.addEventListener('keydown', e => {
+         if (e.key === 'Escape' && S.panel) closePanel();
+         if (e.key === 'Enter' && S.panel === 'elig' && e.target && e.target.matches && e.target.matches('.fld')) {
+            e.preventDefault();
+            applyEligChanges();
+         }
+      });
+
+      /* ---------- auth, live updates, notifications ---------- */
+      function loginView(err) {
+         $('#app').innerHTML = '<form id="lf" style="margin:auto;display:grid;gap:12px;width:min(320px,86vw);padding:24px"><h1>PlacementPulse</h1>' +
+            '<input id="em" type="email" placeholder="Email" autocomplete="username" required style="padding:12px;font:inherit">' +
+            '<input id="pw" type="password" placeholder="Password" autocomplete="current-password" required style="padding:12px;font:inherit">' +
+            '<button style="padding:12px;font:inherit">Sign in</button><p style="color:#c33;margin:0">' + esc(err || '') + '</p></form>';
+         $('#lf').onsubmit = async e => {
+            e.preventDefault();
+            const { error } = await sb.auth.signInWithPassword({ email: $('#em').value, password: $('#pw').value });
+            error ? loginView(error.message) : boot();
+         };
+      }
+      function notify(r) {
+         if (!('Notification' in window) || Notification.permission !== 'granted') return;
+         const title = (r.company || 'New update') + (r.group_name ? ' \u00b7 ' + r.group_name : '');
+         const opts = { body: r.summary || r.roles || '', icon: 'icon-192.png', tag: r.chat_id + ':' + r.message_id };
+         if (navigator.serviceWorker) navigator.serviceWorker.ready.then(reg => reg.showNotification(title, opts)).catch(() => { });
+         else try { new Notification(title, opts) } catch (e) { }
+      }
+      async function registerPush() {
+         const t = window.__PUSH_TOKEN; if (!t) return;
+         const { data: { user } } = await sb.auth.getUser();
+         if (user) await sb.from('push_tokens').upsert({ token: t, user_id: user.id });
+      }
+      window.addEventListener('pushtoken', registerPush);
+      let booted = false;
+      async function boot() {
+         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
+         const { data: { session } } = await sb.auth.getSession();
+         if (!session) return loginView();
+         registerPush();
+         if (booted) return; booted = true;
+         shell(); load(true);
+         setInterval(() => load(false), 5 * 6e4);
+         document.addEventListener('visibilitychange', () => { if (!document.hidden) load(false); });
+         addEventListener('online', () => load(false));
+         sb.channel('pp-live').on('postgres_changes', { event: '*', schema: 'public', table: 'placements' }, p => {
+            if (p.eventType === 'INSERT') notify(p.new);
+            load(false);
+         }).subscribe();
+         if ('Notification' in window && Notification.permission === 'default') {
+            const b = document.createElement('button');
+            b.textContent = 'Enable alerts';
+            b.style.cssText = 'position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:99;padding:10px 14px;border-radius:99px;border:0;background:#13152E;color:#fff;font:inherit';
+            b.onclick = () => Notification.requestPermission().then(() => b.remove());
+            document.body.appendChild(b);
+         }
+      }
+      boot();
+   </script>
+</body>
+
+</html>

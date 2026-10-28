@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "PlacementPulse",
+    "slug": "placementpulse",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.placementpulse.app",
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#13152E" }
+    },
+    "plugins": ["expo-notifications"]
+  }
+}
