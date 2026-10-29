@@ -46,6 +46,8 @@ RETENTION_DAYS = int(
     os.environ.get("RETENTION_DAYS", "7")
 )
 
+NOTIFY_BACKFILL = os.environ.get("NOTIFY_BACKFILL") == "1"
+
 _SESSION_STRING = os.environ.get("TELEGRAM_SESSION_STRING", "").strip()
 
 client = TelegramClient(
@@ -280,6 +282,7 @@ async def backfill():
                         message.date,
                         message.raw_text,
                         msg=message,
+                        notify=NOTIFY_BACKFILL and last_id > 0,
                     )
 
                 if not ok:
