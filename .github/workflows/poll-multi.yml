@@ -1,5 +1,7 @@
 name: poll-multi
 on:
+  schedule:
+    - cron: "3,18,33,48 * * * *"
   workflow_dispatch:
 concurrency:
   group: poll-multi
