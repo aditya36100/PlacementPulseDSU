@@ -2709,7 +2709,7 @@
          const { data: { session } } = await sb.auth.getSession();
          if (!session) return loginView();
          registerPush();
-         if (booted) return; if (!(await tgConnected())) return connectView(); booted = true; tgFab();
+         if (booted) return; if (!(await tgConnected())) return connectView(); booted = true; tgFab(); geminiFab();
          shell(); load(true);
          setInterval(() => load(false), 5 * 6e4);
          document.addEventListener('visibilitychange', () => { if (!document.hidden) load(false); });
@@ -2822,6 +2822,34 @@ async function chatsView() {
       try { await tgCall('/tg/disconnect'); localStorage.removeItem('pp_skip_tg'); connectView(); } catch (e) { tgMsg(e.message); }
    };
    loadRows();
+}
+async function geminiView() {
+   const { data } = await sb.from('user_settings').select('gemini_connected').maybeSingle();
+   const on = !!(data && data.gemini_connected);
+   tgBox('<h1>Gemini key</h1>' +
+      '<p style="margin:0">PlacementPulse uses Google Gemini to read placement messages. Use your own free key so nobody else\u2019s quota is used. Create one at aistudio.google.com/apikey with a personal Gmail account.</p>' +
+      '<p style="margin:0"><b>Status:</b> ' + (on ? 'key saved' : 'no key yet') + '</p>' +
+      '<input id="gk" type="password" placeholder="Paste Gemini API key" autocomplete="off" style="' + tgIn + '">' +
+      '<button id="gs" style="padding:12px;font:inherit">Save and test key</button>' +
+      (on ? '<button id="gr" style="padding:12px;font:inherit;color:#c33">Remove key</button>' : '') +
+      '<button id="gb" style="padding:12px;font:inherit">Back</button>');
+   $('#gb').onclick = () => location.reload();
+   $('#gs').onclick = async () => {
+      tgMsg('Testing key...', true);
+      try { await tgCall('/gemini/save', { key: $('#gk').value }); $('#gk').value = ''; geminiView(); }
+      catch (e) { tgMsg(e.message); }
+   };
+   if (on) $('#gr').onclick = async () => {
+      if (!confirm('Remove your Gemini key?')) return;
+      try { await tgCall('/gemini/remove'); geminiView(); } catch (e) { tgMsg(e.message); }
+   };
+}
+function geminiFab() {
+   const b = document.createElement('button');
+   b.textContent = 'Gemini key';
+   b.style.cssText = 'position:fixed;left:110px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:99;padding:10px 14px;border-radius:99px;border:0;background:#13152E;color:#fff;font:inherit';
+   b.onclick = geminiView;
+   document.body.appendChild(b);
 }
 function tgFab() {
    const b = document.createElement('button');
