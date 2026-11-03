@@ -150,15 +150,30 @@ def looks_like_placement_message(text: str) -> bool:
 
 _QUOTA_RETRY_SECONDS = 3600
 _quota_blocked_until = 0.0
+_key_blocked = {}
+_clients = {}
 
 
-def _quota_blocked() -> bool:
+def _quota_blocked(api_key=None) -> bool:
+    if api_key:
+        return time.monotonic() < _key_blocked.get(api_key, 0.0)
     return time.monotonic() < _quota_blocked_until
 
 
-def _block_quota():
+def _block_quota(api_key=None):
     global _quota_blocked_until
+    if api_key:
+        _key_blocked[api_key] = time.monotonic() + _QUOTA_RETRY_SECONDS
+        return
     _quota_blocked_until = time.monotonic() + _QUOTA_RETRY_SECONDS
+
+
+def _client_for(api_key=None):
+    if not api_key:
+        return client
+    if api_key not in _clients:
+        _clients[api_key] = genai.Client(api_key=api_key)
+    return _clients[api_key]
 
 
 def _is_daily_quota_error(message: str) -> bool:
@@ -201,7 +216,7 @@ async def _respect_rate_limit():
 # Main extraction function
 # ---------------------------------------------------------
 
-async def extract_placement_info(text: str, message_date: str = "") -> dict | None:
+async def extract_placement_info(text: str, message_date: str = "", api_key: str | None = None) -> dict | None:
     """
     Classify a single Telegram message.
 
@@ -220,7 +235,7 @@ async def extract_placement_info(text: str, message_date: str = "") -> dict | No
         print("[local filter] skipped non-placement message")
         return {"is_relevant": False}
 
-    if _quota_blocked():
+    if _quota_blocked(api_key):
         return None
 
     prompt = f"Message posted on: {message_date}\n\n{text}" if message_date else text
@@ -231,7 +246,7 @@ async def extract_placement_info(text: str, message_date: str = "") -> dict | No
 
         try:
 
-            response = await client.aio.models.generate_content(
+            response = await _client_for(api_key).aio.models.generate_content(
                 model=MODEL,
                 contents=prompt,
                 config=types.GenerateContentConfig(
@@ -249,7 +264,7 @@ async def extract_placement_info(text: str, message_date: str = "") -> dict | No
 
             if _is_daily_quota_error(msg):
 
-                _block_quota()
+                _block_quota(api_key)
 
                 print(
                     "[extractor] Gemini daily quota exhausted. "
