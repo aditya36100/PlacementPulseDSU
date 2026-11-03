@@ -260,6 +260,37 @@ async def disconnect(authorization: str | None = Header(default=None)):
     return {"connected": False}
 
 
+class GeminiKey(BaseModel):
+    key: str
+
+
+@router.post("/gemini/save")
+async def gemini_save(body: GeminiKey, authorization: str | None = Header(default=None)):
+    user_id = await current_user_id(authorization)
+    key = body.key.strip()
+    if len(key) < 20 or " " in key:
+        raise HTTPException(400, "That does not look like a Gemini API key.")
+    async with httpx.AsyncClient(timeout=15) as c:
+        r = await c.get("https://generativelanguage.googleapis.com/v1beta/models",
+                        headers={"x-goog-api-key": key})
+    if r.status_code != 200:
+        raise HTTPException(400, "Gemini rejected this key. Create it at aistudio.google.com/apikey using a personal Gmail account.")
+    await db_upsert("user_secrets", [{"user_id": user_id, "gemini_key_enc": enc(key),
+                                      "updated_at": datetime.now(timezone.utc).isoformat()}], "user_id")
+    await db_upsert("user_settings", [{"user_id": user_id, "gemini_connected": True}], "user_id")
+    return {"gemini_connected": True}
+
+
+@router.post("/gemini/remove")
+async def gemini_remove(authorization: str | None = Header(default=None)):
+    user_id = await current_user_id(authorization)
+    async with httpx.AsyncClient(timeout=20) as c:
+        await c.patch(f"{SUPABASE_URL}/rest/v1/user_secrets?user_id=eq.{user_id}",
+                      headers=_svc_headers(), content=json.dumps({"gemini_key_enc": None}))
+    await db_upsert("user_settings", [{"user_id": user_id, "gemini_connected": False}], "user_id")
+    return {"gemini_connected": False}
+
+
 @router.get("/health")
 async def health():
     return {"ok": True}
