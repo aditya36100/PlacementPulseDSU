@@ -2709,7 +2709,7 @@
          const { data: { session } } = await sb.auth.getSession();
          if (!session) return loginView();
          registerPush();
-         if (booted) return; booted = true;
+         if (booted) return; if (!(await tgConnected())) return connectView(); booted = true; tgFab();
          shell(); load(true);
          setInterval(() => load(false), 5 * 6e4);
          document.addEventListener('visibilitychange', () => { if (!document.hidden) load(false); });
@@ -2726,6 +2726,115 @@
             document.body.appendChild(b);
          }
       }
+const TG_API = 'https://placement-pulse-dsu.vercel.app';
+const tgIn = 'padding:12px;font:inherit;width:100%;box-sizing:border-box';
+async function tgCall(path, body) {
+   const { data: { session } } = await sb.auth.getSession();
+   const r = await fetch(TG_API + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify(body || {})
+   });
+   const d = await r.json().catch(() => ({}));
+   if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : 'Request failed (' + r.status + ')');
+   return d;
+}
+async function tgConnected() {
+   if (localStorage.getItem('pp_skip_tg')) return true;
+   const { data, error } = await sb.from('user_settings').select('telegram_connected').maybeSingle();
+   return error ? true : !!(data && data.telegram_connected);
+}
+function tgBox(inner) {
+   $('#app').innerHTML = '<div style="margin:auto;display:grid;gap:12px;width:min(400px,90vw);padding:24px">' + inner + '<p id="tgm" style="margin:0;color:#c33"></p></div>';
+}
+function tgMsg(t, ok) { const p = $('#tgm'); if (p) { p.style.color = ok ? '#177' : '#c33'; p.textContent = t; } }
+function connectView() {
+   tgBox('<h1>Connect Telegram</h1>' +
+      '<p style="margin:0">PlacementPulse reads your placement groups using your own Telegram login. Type the code yourself and never forward it to anyone. A new device called "PlacementPulse" will appear in Telegram > Settings > Devices.</p>' +
+      '<input id="ph" placeholder="+91XXXXXXXXXX" inputmode="tel" style="' + tgIn + '">' +
+      '<details><summary>Advanced: use my own Telegram API keys</summary>' +
+      '<input id="aid" placeholder="api_id" style="' + tgIn + ';margin-top:8px">' +
+      '<input id="ahash" placeholder="api_hash" style="' + tgIn + ';margin-top:8px"></details>' +
+      '<label><input type="checkbox" id="cons"> I agree that PlacementPulse stores my Telegram session (encrypted) to read the groups I choose.</label>' +
+      '<button id="go" style="padding:12px;font:inherit">Send code</button>' +
+      '<button id="skip" style="padding:12px;font:inherit">Skip for now</button>');
+   $('#skip').onclick = () => { localStorage.setItem('pp_skip_tg', '1'); boot(); };
+   $('#go').onclick = async () => {
+      if (!$('#cons').checked) return tgMsg('Please tick the consent box.');
+      tgMsg('Sending code...', true);
+      try {
+         const d = await tgCall('/tg/send_code', { phone: $('#ph').value, api_id: $('#aid').value.trim() || null, api_hash: $('#ahash').value.trim() || null });
+         codeView(d.ticket);
+      } catch (e) { tgMsg(e.message); }
+   };
+}
+function codeView(ticket) {
+   tgBox('<h1>Enter the code</h1><p style="margin:0">Telegram sent a code to your Telegram app. Type it here yourself.</p>' +
+      '<input id="cd" placeholder="Code" inputmode="numeric" autocomplete="one-time-code" style="' + tgIn + '">' +
+      '<button id="vf" style="padding:12px;font:inherit">Verify</button>');
+   $('#vf').onclick = async () => {
+      tgMsg('Checking...', true);
+      try {
+         const d = await tgCall('/tg/verify', { ticket, code: $('#cd').value });
+         d.need_password ? passView(d.ticket) : chatsView();
+      } catch (e) { tgMsg(e.message); }
+   };
+}
+function passView(ticket) {
+   tgBox('<h1>2-step password</h1><p style="margin:0">Your Telegram account has a 2-step verification password.</p>' +
+      '<input id="pw2" type="password" placeholder="Telegram password" style="' + tgIn + '">' +
+      '<button id="vf" style="padding:12px;font:inherit">Verify</button>');
+   $('#vf').onclick = async () => {
+      tgMsg('Checking...', true);
+      try {
+         await tgCall('/tg/verify', { ticket, password: $('#pw2').value });
+         chatsView();
+      } catch (e) { tgMsg(e.message); }
+   };
+}
+async function chatsView() {
+   tgBox('<h1>Your groups</h1><p style="margin:0">Switch on the groups you want placement updates from. You can change this anytime.</p>' +
+      '<input id="fl" placeholder="Filter groups" style="' + tgIn + '"><div id="cl" style="display:grid;gap:6px;max-height:50vh;overflow:auto"></div>' +
+      '<button id="sy" style="padding:12px;font:inherit">Refresh group list</button>' +
+      '<button id="dn" style="padding:12px;font:inherit">Done</button>' +
+      '<button id="dc" style="padding:12px;font:inherit;color:#c33">Disconnect Telegram</button>');
+   let rows = [];
+   const draw = () => {
+      const q = $('#fl').value.toLowerCase();
+      $('#cl').innerHTML = rows.filter(r => (r.title || '').toLowerCase().includes(q)).map(r =>
+         '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-id="' + esc(String(r.chat_id)) + '"' + (r.enabled ? ' checked' : '') + '> <span>' + esc(r.title || String(r.chat_id)) + '</span></label>').join('') || '<p>No groups found.</p>';
+      $('#cl').querySelectorAll('input').forEach(cb => cb.onchange = async () => {
+         const { error } = await sb.from('user_chats').update({ enabled: cb.checked }).eq('chat_id', cb.dataset.id);
+         if (error) { cb.checked = !cb.checked; tgMsg('Could not save: ' + error.message); }
+         else { const r = rows.find(x => String(x.chat_id) === cb.dataset.id); if (r) r.enabled = cb.checked; tgMsg(''); }
+      });
+   };
+   const loadRows = async () => {
+      const { data, error } = await sb.from('user_chats').select('chat_id,title,enabled').order('title');
+      if (error) return tgMsg(error.message);
+      rows = data || []; draw();
+   };
+   $('#fl').oninput = draw;
+   $('#sy').onclick = async () => { tgMsg('Refreshing...', true); try { await tgCall('/tg/sync'); await loadRows(); tgMsg('Updated.', true); } catch (e) { tgMsg(e.message); } };
+   $('#dn').onclick = () => { localStorage.removeItem('pp_skip_tg'); location.reload(); };
+   $('#dc').onclick = async () => {
+      if (!confirm('Disconnect Telegram and delete your stored session?')) return;
+      try { await tgCall('/tg/disconnect'); localStorage.removeItem('pp_skip_tg'); connectView(); } catch (e) { tgMsg(e.message); }
+   };
+   loadRows();
+}
+function tgFab() {
+   const b = document.createElement('button');
+   b.textContent = 'Telegram';
+   b.style.cssText = 'position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:99;padding:10px 14px;border-radius:99px;border:0;background:#13152E;color:#fff;font:inherit';
+   b.onclick = async () => { (await tgConnectedReal()) ? chatsView() : connectView(); };
+   document.body.appendChild(b);
+}
+async function tgConnectedReal() {
+   const { data } = await sb.from('user_settings').select('telegram_connected').maybeSingle();
+   return !!(data && data.telegram_connected);
+}
+
       boot();
    </script>
 </body>
