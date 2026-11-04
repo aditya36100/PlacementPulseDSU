@@ -2683,11 +2683,31 @@
          $('#app').innerHTML = '<form id="lf" style="margin:auto;display:grid;gap:12px;width:min(320px,86vw);padding:24px"><h1>PlacementPulse</h1>' +
             '<input id="em" type="email" placeholder="Email" autocomplete="username" required style="padding:12px;font:inherit">' +
             '<input id="pw" type="password" placeholder="Password" autocomplete="current-password" required style="padding:12px;font:inherit">' +
-            '<button style="padding:12px;font:inherit">Sign in</button><p style="color:#c33;margin:0">' + esc(err || '') + '</p></form>';
+            '<button style="padding:12px;font:inherit">Sign in</button>' +
+            '<button type="button" id="su" style="padding:12px;font:inherit">Create account</button>' +
+            '<p style="color:#c33;margin:0">' + esc(err || '') + '</p></form>';
+         $('#su').onclick = () => signupView();
          $('#lf').onsubmit = async e => {
             e.preventDefault();
             const { error } = await sb.auth.signInWithPassword({ email: $('#em').value, password: $('#pw').value });
             error ? loginView(error.message) : boot();
+         };
+      }
+      function signupView(msg, ok) {
+         $('#app').innerHTML = '<form id="sf" style="margin:auto;display:grid;gap:12px;width:min(340px,88vw);padding:24px"><h1>Create account</h1>' +
+            '<input id="em" type="email" placeholder="Email" autocomplete="username" required style="padding:12px;font:inherit">' +
+            '<input id="pw" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" minlength="8" required style="padding:12px;font:inherit">' +
+            '<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="sc" style="margin-top:4px"> <span>I agree that PlacementPulse stores my email and the placement data from the groups I choose. Next I will connect my own Telegram and my own free Gemini key.</span></label>' +
+            '<button style="padding:12px;font:inherit">Create account</button>' +
+            '<button type="button" id="sb" style="padding:12px;font:inherit">Back to sign in</button>' +
+            '<p style="margin:0;color:' + (ok ? '#177' : '#c33') + '">' + esc(msg || '') + '</p></form>';
+         $('#sb').onclick = () => loginView();
+         $('#sf').onsubmit = async e => {
+            e.preventDefault();
+            if (!$('#sc').checked) return signupView('Please tick the consent box.');
+            const { data, error } = await sb.auth.signUp({ email: $('#em').value, password: $('#pw').value, options: { data: { consent_at: new Date().toISOString() } } });
+            if (error) return signupView(error.message);
+            if (data.session) boot(); else signupView('Check your email to confirm, then sign in.', true);
          };
       }
       function notify(r) {
