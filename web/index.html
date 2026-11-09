@@ -2680,7 +2680,7 @@
 
       /* ---------- auth, live updates, notifications ---------- */
       const AUTH_CSS = '<style>' +
-         '.au{margin:auto;width:min(380px,92vw);padding:28px 24px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 40px rgba(19,21,46,.08);display:grid;gap:14px}' +
+         '.au{grid-column:1/-1;justify-self:center;align-self:center;width:min(380px,92vw);padding:28px 24px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 40px rgba(19,21,46,.08);display:grid;gap:14px}' +
          '.au h1{margin:0;font-size:26px;color:var(--ink)}.au .sub{margin:0;color:var(--mut);font-size:14px}' +
          '.au .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:4px;gap:4px}' +
          '.au .tabs button{border:0;border-radius:9px;padding:10px;font:inherit;font-weight:600;background:transparent;color:var(--mut);cursor:pointer}' +
@@ -2778,7 +2778,7 @@ async function tgConnected() {
    return error ? true : !!(data && data.telegram_connected);
 }
 function tgBox(inner) {
-   $('#app').innerHTML = '<div style="margin:auto;display:grid;gap:12px;width:min(400px,90vw);padding:24px">' + inner + '<p id="tgm" style="margin:0;color:#c33"></p></div>';
+   $('#app').innerHTML = '<div style="grid-column:1/-1;justify-self:center;align-self:center;display:grid;gap:12px;width:min(400px,90vw);padding:24px">' + inner + '<p id="tgm" style="margin:0;color:#c33"></p></div>';
 }
 function tgMsg(t, ok) { const p = $('#tgm'); if (p) { p.style.color = ok ? '#177' : '#c33'; p.textContent = t; } }
 function connectView() {
