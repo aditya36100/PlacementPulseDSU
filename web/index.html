@@ -1964,6 +1964,14 @@
          .rng { margin: 8px 0 0 }
       }
 
+      /* update prompt (Android app only) */
+      #updbar { position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 100; display: grid; gap: 4px; padding: 14px 16px; background: #13152E; color: #fff; border-radius: 16px; box-shadow: 0 18px 44px -10px rgba(20, 20, 70, .5) }
+      #updbar b { font-size: 15px }
+      #updbar span { font-size: 13px; opacity: .8 }
+      #updbar .ur { display: flex; gap: 8px; margin-top: 8px }
+      #updbar button { padding: 9px 16px; border-radius: 99px; font-size: 14px; font-weight: 600; background: rgba(255, 255, 255, .14); color: #fff }
+      #updbar .ugo { background: #fff; color: #13152E }
+
       @media(prefers-reduced-motion:reduce) {
          * {
             transition-duration: .01ms !important
@@ -2958,6 +2966,29 @@ document.addEventListener('click', e => {
    else if (k === 'saved') it.classList.toggle('on', S.savedOnly);
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { const p = document.getElementById('mmpop'); if (p) p.classList.remove('open'); } });
+// update prompt: the app reports window.__APP_VC, version.json says which build is newest
+async function checkUpdate() {
+   try {
+      if (!window.ReactNativeWebView || document.getElementById('updbar')) return;
+      const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const v = await r.json(), mine = Number(window.__APP_VC) || 0, latest = Number(v.versionCode) || 0;
+      if (!mine || !latest || mine >= latest || !/^https:\/\//.test(v.url || '')) return;
+      let skipped = ''; try { skipped = sessionStorage.getItem('pp_upd_skip') || '' } catch (e) { }
+      if (skipped === String(latest)) return;
+      const b = document.createElement('div'); b.id = 'updbar'; b.setAttribute('role', 'alertdialog');
+      const h = document.createElement('b'); h.textContent = 'New version available';
+      const t = document.createElement('span'); t.textContent = v.notes || 'Update PlacementPulse for the latest fixes and features.';
+      const row = document.createElement('div'); row.className = 'ur';
+      const go = document.createElement('button'); go.type = 'button'; go.className = 'ugo'; go.textContent = 'Update now';
+      go.onclick = () => { location.href = v.url; };
+      const later = document.createElement('button'); later.type = 'button'; later.textContent = 'Later';
+      later.onclick = () => { try { sessionStorage.setItem('pp_upd_skip', String(latest)) } catch (e) { } b.remove(); };
+      row.append(go, later); b.append(h, t, row); document.body.appendChild(b);
+   } catch (e) { }
+}
+setTimeout(checkUpdate, 2500);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
 async function tgConnectedReal() {
    const { data } = await sb.from('user_settings').select('telegram_connected').maybeSingle();
    return !!(data && data.telegram_connected);
