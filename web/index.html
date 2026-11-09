@@ -2679,37 +2679,50 @@
       });
 
       /* ---------- auth, live updates, notifications ---------- */
-      function loginView(err) {
-         $('#app').innerHTML = '<form id="lf" style="margin:auto;display:grid;gap:12px;width:min(320px,86vw);padding:24px"><h1>PlacementPulse</h1>' +
-            '<input id="em" type="email" placeholder="Email" autocomplete="username" required style="padding:12px;font:inherit">' +
-            '<input id="pw" type="password" placeholder="Password" autocomplete="current-password" required style="padding:12px;font:inherit">' +
-            '<button style="padding:12px;font:inherit">Sign in</button>' +
-            '<button type="button" id="su" style="padding:12px;font:inherit">Create account</button>' +
-            '<p style="color:#c33;margin:0">' + esc(err || '') + '</p></form>';
-         $('#su').onclick = () => signupView();
-         $('#lf').onsubmit = async e => {
+      const AUTH_CSS = '<style>' +
+         '.au{margin:auto;width:min(380px,92vw);padding:28px 24px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 40px rgba(19,21,46,.08);display:grid;gap:14px}' +
+         '.au h1{margin:0;font-size:26px;color:var(--ink)}.au .sub{margin:0;color:var(--mut);font-size:14px}' +
+         '.au .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:4px;gap:4px}' +
+         '.au .tabs button{border:0;border-radius:9px;padding:10px;font:inherit;font-weight:600;background:transparent;color:var(--mut);cursor:pointer}' +
+         '.au .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(19,21,46,.12)}' +
+         '.au input[type=email],.au input[type=password]{padding:13px 14px;font:inherit;border:1px solid var(--line);border-radius:10px;width:100%;box-sizing:border-box;background:#fff;color:var(--ink)}' +
+         '.au input:focus{outline:2px solid var(--ac);outline-offset:0;border-color:transparent}' +
+         '.au .go{padding:13px;font:inherit;font-weight:600;border:0;border-radius:10px;background:var(--ac);color:#fff;cursor:pointer}' +
+         '.au .go:disabled{opacity:.6;cursor:default}' +
+         '.au .chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--mut)}.au .chk input{margin-top:3px}' +
+         '.au .msg{margin:0;min-height:18px;font-size:14px}' +
+         '</style>';
+      function authView(mode, msg, ok, email) {
+         const up = mode === 'up';
+         $('#app').innerHTML = AUTH_CSS + '<form id="af" class="au" novalidate>' +
+            '<h1>PlacementPulse</h1><p class="sub">' + (up ? 'Create your account to get live placement updates.' : 'Sign in to see your placement updates.') + '</p>' +
+            '<div class="tabs"><button type="button" id="ti" class="' + (up ? '' : 'on') + '">Sign in</button><button type="button" id="tu" class="' + (up ? 'on' : '') + '">Sign up</button></div>' +
+            '<input id="em" type="email" placeholder="Email" autocomplete="username" value="' + esc(email || '') + '">' +
+            '<input id="pw" type="password" placeholder="' + (up ? 'Password (8+ characters)' : 'Password') + '" autocomplete="' + (up ? 'new-password' : 'current-password') + '">' +
+            (up ? '<label class="chk"><input type="checkbox" id="sc"> <span>I agree that PlacementPulse stores my email and the placement data from the groups I choose. Next I will connect my own Telegram and my own free Gemini key.</span></label>' : '') +
+            '<button class="go" id="gb">' + (up ? 'Create account' : 'Sign in') + '</button>' +
+            '<p class="msg" style="color:' + (ok ? '#087A5A' : '#C2411B') + '">' + esc(msg || '') + '</p></form>';
+         $('#ti').onclick = () => authView('in', '', false, $('#em').value);
+         $('#tu').onclick = () => authView('up', '', false, $('#em').value);
+         $('#af').onsubmit = async e => {
             e.preventDefault();
-            const { error } = await sb.auth.signInWithPassword({ email: $('#em').value, password: $('#pw').value });
-            error ? loginView(error.message) : boot();
+            const em = $('#em').value.trim(), pw = $('#pw').value;
+            if (!em || !pw) return authView(mode, 'Enter your email and password.', false, em);
+            if (up && pw.length < 8) return authView(mode, 'Password must be at least 8 characters.', false, em);
+            if (up && !$('#sc').checked) return authView(mode, 'Please tick the consent box.', false, em);
+            $('#gb').disabled = true; $('#gb').textContent = 'Please wait...';
+            if (up) {
+               const { data, error } = await sb.auth.signUp({ email: em, password: pw, options: { data: { consent_at: new Date().toISOString() } } });
+               if (error) return authView('up', error.message, false, em);
+               if (data.session) return boot();
+               return authView('in', 'Check your email to confirm, then sign in.', true, em);
+            }
+            const { error } = await sb.auth.signInWithPassword({ email: em, password: pw });
+            error ? authView('in', error.message, false, em) : boot();
          };
       }
-      function signupView(msg, ok) {
-         $('#app').innerHTML = '<form id="sf" style="margin:auto;display:grid;gap:12px;width:min(340px,88vw);padding:24px"><h1>Create account</h1>' +
-            '<input id="em" type="email" placeholder="Email" autocomplete="username" required style="padding:12px;font:inherit">' +
-            '<input id="pw" type="password" placeholder="Password (8+ characters)" autocomplete="new-password" minlength="8" required style="padding:12px;font:inherit">' +
-            '<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="sc" style="margin-top:4px"> <span>I agree that PlacementPulse stores my email and the placement data from the groups I choose. Next I will connect my own Telegram and my own free Gemini key.</span></label>' +
-            '<button style="padding:12px;font:inherit">Create account</button>' +
-            '<button type="button" id="sb" style="padding:12px;font:inherit">Back to sign in</button>' +
-            '<p style="margin:0;color:' + (ok ? '#177' : '#c33') + '">' + esc(msg || '') + '</p></form>';
-         $('#sb').onclick = () => loginView();
-         $('#sf').onsubmit = async e => {
-            e.preventDefault();
-            if (!$('#sc').checked) return signupView('Please tick the consent box.');
-            const { data, error } = await sb.auth.signUp({ email: $('#em').value, password: $('#pw').value, options: { data: { consent_at: new Date().toISOString() } } });
-            if (error) return signupView(error.message);
-            if (data.session) boot(); else signupView('Check your email to confirm, then sign in.', true);
-         };
-      }
+      function loginView(err) { authView('in', err, false); }
+      function signupView(msg, ok) { authView('up', msg, ok); }
       function notify(r) {
          if (!('Notification' in window) || Notification.permission !== 'granted') return;
          const title = (r.company || 'New update') + (r.group_name ? ' \u00b7 ' + r.group_name : '');
