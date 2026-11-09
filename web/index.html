@@ -2685,7 +2685,7 @@
          '.au .tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:4px;gap:4px}' +
          '.au .tabs button{border:0;border-radius:9px;padding:10px;font:inherit;font-weight:600;background:transparent;color:var(--mut);cursor:pointer}' +
          '.au .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(19,21,46,.12)}' +
-         '.au input[type=email],.au input[type=password]{padding:13px 14px;font:inherit;border:1px solid var(--line);border-radius:10px;width:100%;box-sizing:border-box;background:#fff;color:var(--ink)}' +
+         '.au input[type=email],.au input[type=password],.au input[type=text]{padding:13px 14px;font:inherit;border:1px solid var(--line);border-radius:10px;width:100%;box-sizing:border-box;background:#fff;color:var(--ink)}' +
          '.au input:focus{outline:2px solid var(--ac);outline-offset:0;border-color:transparent}' +
          '.au .go{padding:13px;font:inherit;font-weight:600;border:0;border-radius:10px;background:var(--ac);color:#fff;cursor:pointer}' +
          '.au .go:disabled{opacity:.6;cursor:default}' +
@@ -2699,6 +2699,7 @@
             '<div class="tabs"><button type="button" id="ti" class="' + (up ? '' : 'on') + '">Sign in</button><button type="button" id="tu" class="' + (up ? 'on' : '') + '">Sign up</button></div>' +
             '<input id="em" type="email" placeholder="Email" autocomplete="username" value="' + esc(email || '') + '">' +
             '<input id="pw" type="password" placeholder="' + (up ? 'Password (8+ characters)' : 'Password') + '" autocomplete="' + (up ? 'new-password' : 'current-password') + '">' +
+            (up ? '<input id="ic" type="text" placeholder="Invite code" autocomplete="off" autocapitalize="none" spellcheck="false">' : '') +
             (up ? '<label class="chk"><input type="checkbox" id="sc"> <span>I agree that PlacementPulse stores my email and the placement data from the groups I choose. Next I will connect my own Telegram and my own free Gemini key.</span></label>' : '') +
             '<button class="go" id="gb">' + (up ? 'Create account' : 'Sign in') + '</button>' +
             '<p class="msg" style="color:' + (ok ? '#087A5A' : '#C2411B') + '">' + esc(msg || '') + '</p></form>';
@@ -2710,10 +2711,12 @@
             if (!em || !pw) return authView(mode, 'Enter your email and password.', false, em);
             if (up && pw.length < 8) return authView(mode, 'Password must be at least 8 characters.', false, em);
             if (up && !$('#sc').checked) return authView(mode, 'Please tick the consent box.', false, em);
+            const ic = up ? $('#ic').value.trim() : '';
+            if (up && !ic) return authView(mode, 'Enter the invite code you were given.', false, em);
             $('#gb').disabled = true; $('#gb').textContent = 'Please wait...';
             if (up) {
-               const { data, error } = await sb.auth.signUp({ email: em, password: pw, options: { data: { consent_at: new Date().toISOString() } } });
-               if (error) return authView('up', error.message, false, em);
+               const { data, error } = await sb.auth.signUp({ email: em, password: pw, options: { data: { consent_at: new Date().toISOString(), invite_code: ic } } });
+               if (error) return authView('up', /database error/i.test(error.message) ? 'Invalid invite code, or PlacementPulse is full.' : error.message, false, em);
                if (data.session) return boot();
                return authView('in', 'Check your email to confirm, then sign in.', true, em);
             }
