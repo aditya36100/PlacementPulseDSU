@@ -2795,7 +2795,7 @@
          const { data: { session } } = await sb.auth.getSession();
          if (!session) return loginView();
          registerPush();
-         if (booted) return; if (!(await tgConnected())) return connectView(); booted = true;
+         if (booted) return; if (!(await tgConnected())) return connectView(); if (!(await hasChats())) return chatsView(); if (!(await geminiOk())) return geminiView(true); booted = true;
          shell(); load(true);
          setInterval(() => load(false), 5 * 6e4);
          document.addEventListener('visibilitychange', () => { if (!document.hidden) load(false); });
@@ -2825,8 +2825,15 @@ async function tgCall(path, body) {
    if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : 'Request failed (' + r.status + ')');
    return d;
 }
+async function hasChats() {
+   const { data, error } = await sb.from('user_chats').select('chat_id').eq('enabled', true).limit(1);
+   return error ? true : !!(data && data.length);
+}
+async function geminiOk() {
+   const { data, error } = await sb.from('user_settings').select('gemini_connected').maybeSingle();
+   return error ? true : !!(data && data.gemini_connected);
+}
 async function tgConnected() {
-   if (localStorage.getItem('pp_skip_tg')) return true;
    const { data, error } = await sb.from('user_settings').select('telegram_connected').maybeSingle();
    return error ? true : !!(data && data.telegram_connected);
 }
@@ -2842,9 +2849,7 @@ function connectView() {
       '<input id="aid" placeholder="api_id" style="' + tgIn + ';margin-top:8px">' +
       '<input id="ahash" placeholder="api_hash" style="' + tgIn + ';margin-top:8px"></details>' +
       '<label><input type="checkbox" id="cons"> I agree that PlacementPulse stores my Telegram session (encrypted) to read the groups I choose.</label>' +
-      '<button id="go" style="padding:12px;font:inherit">Send code</button>' +
-      '<button id="skip" style="padding:12px;font:inherit">Skip for now</button>');
-   $('#skip').onclick = () => { localStorage.setItem('pp_skip_tg', '1'); boot(); };
+      '<button id="go" style="padding:12px;font:inherit">Send code</button>');
    $('#go').onclick = async () => {
       if (!$('#cons').checked) return tgMsg('Please tick the consent box.');
       tgMsg('Sending code...', true);
@@ -2902,27 +2907,35 @@ async function chatsView() {
    };
    $('#fl').oninput = draw;
    $('#sy').onclick = async () => { tgMsg('Refreshing...', true); try { await tgCall('/tg/sync'); await loadRows(); tgMsg('Updated.', true); } catch (e) { tgMsg(e.message); } };
-   $('#dn').onclick = () => { localStorage.removeItem('pp_skip_tg'); location.reload(); };
+   $('#dn').onclick = () => { if (!rows.some(r => r.enabled)) return tgMsg('Switch on at least one group to continue.'); localStorage.removeItem('pp_skip_tg'); location.reload(); };
    $('#dc').onclick = async () => {
       if (!confirm('Disconnect Telegram and delete your stored session?')) return;
       try { await tgCall('/tg/disconnect'); localStorage.removeItem('pp_skip_tg'); connectView(); } catch (e) { tgMsg(e.message); }
    };
    loadRows();
 }
-async function geminiView() {
+async function geminiView(onb) {
    const { data } = await sb.from('user_settings').select('gemini_connected').maybeSingle();
    const on = !!(data && data.gemini_connected);
    tgBox('<h1>Gemini key</h1>' +
-      '<p style="margin:0">PlacementPulse uses Google Gemini to read placement messages. Use your own free key so nobody else\u2019s quota is used. Create one at aistudio.google.com/apikey with a personal Gmail account.</p>' +
+      '<p style="margin:0">PlacementPulse reads placement messages with Google Gemini, using your own free key so nobody else\u2019s quota is used. Messages that someone in your group has already had read are shared, so your key is only used for new ones.</p>' +
+      '<b>Steps to get your API key</b>' +
+      '<ol style="margin:0;padding-left:20px;display:grid;gap:6px">' +
+      '<li>Go to the <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio API key page</a>.</li>' +
+      '<li>Log in with your Google account (a personal Gmail works best).</li>' +
+      '<li>Click <b>Get API key</b>, or the key icon in the left sidebar.</li>' +
+      '<li>Click <b>Create API key</b> in the upper right corner.</li>' +
+      '<li>Select a project (or create a new one) and give your key a name.</li>' +
+      '<li>Copy the generated key, paste it below, and keep a private copy somewhere safe.</li></ol>' +
       '<p style="margin:0"><b>Status:</b> ' + (on ? 'key saved' : 'no key yet') + '</p>' +
       '<input id="gk" type="password" placeholder="Paste Gemini API key" autocomplete="off" style="' + tgIn + '">' +
       '<button id="gs" style="padding:12px;font:inherit">Save and test key</button>' +
       (on ? '<button id="gr" style="padding:12px;font:inherit;color:#c33">Remove key</button>' : '') +
-      '<button id="gb" style="padding:12px;font:inherit">Back</button>');
-   $('#gb').onclick = () => location.reload();
+      (onb ? '' : '<button id="gb" style="padding:12px;font:inherit">Back</button>'));
+   if (!onb) $('#gb').onclick = () => location.reload();
    $('#gs').onclick = async () => {
       tgMsg('Testing key...', true);
-      try { await tgCall('/gemini/save', { key: $('#gk').value }); $('#gk').value = ''; geminiView(); }
+      try { await tgCall('/gemini/save', { key: $('#gk').value }); $('#gk').value = ''; if (onb) { tgMsg('Key saved. Fetching your last 7 days now; first updates can take up to 15 minutes.', true); setTimeout(() => location.reload(), 2500); } else geminiView(); }
       catch (e) { tgMsg(e.message); }
    };
    if (on) $('#gr').onclick = async () => {
