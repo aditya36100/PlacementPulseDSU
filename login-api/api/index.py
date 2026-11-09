@@ -38,7 +38,7 @@ MAX_DIALOGS = 400
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ALLOWED_ORIGIN],
+    allow_origins=[ALLOWED_ORIGIN, "https://placementpulse-dsu.vercel.app"],
     allow_methods=["POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
