@@ -2739,6 +2739,14 @@
          if (user) await sb.from('push_tokens').upsert({ token: t, user_id: user.id });
       }
       window.addEventListener('pushtoken', registerPush);
+      // Phone back button (called by the Android app): close one layer, else tell the app to exit
+      window.__ppBack = function () {
+         const say = m => { try { window.ReactNativeWebView && window.ReactNativeWebView.postMessage(m) } catch (e) { } };
+         if (S.panel) { closePanel(); return say('handled'); }
+         if ($('#app').classList.contains('show-d')) { $('#app').classList.remove('show-d'); return say('handled'); }
+         if (window.__ppScreen) { location.reload(); return say('handled'); }
+         say('exit');
+      };
       let booted = false;
       async function boot() {
          if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
@@ -2884,14 +2892,14 @@ function geminiFab() {
    const b = document.createElement('button');
    b.textContent = 'Gemini key';
    b.style.cssText = 'position:fixed;left:110px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:99;padding:10px 14px;border-radius:99px;border:0;background:#13152E;color:#fff;font:inherit';
-   b.onclick = geminiView;
+   b.onclick = () => { window.__ppScreen = true; geminiView(); };
    document.body.appendChild(b);
 }
 function tgFab() {
    const b = document.createElement('button');
    b.textContent = 'Telegram';
    b.style.cssText = 'position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:99;padding:10px 14px;border-radius:99px;border:0;background:#13152E;color:#fff;font:inherit';
-   b.onclick = async () => { (await tgConnectedReal()) ? chatsView() : connectView(); };
+   b.onclick = async () => { window.__ppScreen = true; (await tgConnectedReal()) ? chatsView() : connectView(); };
    document.body.appendChild(b);
 }
 async function tgConnectedReal() {
